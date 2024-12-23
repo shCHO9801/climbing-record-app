@@ -1,0 +1,21 @@
+spring:
+  # 애플리케이션 이름
+  application:
+    name : climbing-record-app
+
+# 데이터 베이스 연결 설정
+  datasource:
+    url: jdbc:mysql://localhost:3306/climbing?useSSL=false&serverTimezone=UTC
+    username: climbing
+    password: climbing
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # 개발 단계에서 스키마 자동 업데이트
+    show-sql: true      # 실행되는 SQL 퀴리 로그 출력
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+server:
+  port: 8080
