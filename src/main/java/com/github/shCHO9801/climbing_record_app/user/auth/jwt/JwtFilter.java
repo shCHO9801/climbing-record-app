@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.auth.jwt;
+package com.github.shCHO9801.climbing_record_app.user.auth.jwt;
 
 import com.github.shCHO9801.climbing_record_app.user.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;

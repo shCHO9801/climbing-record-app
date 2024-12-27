@@ -1,6 +1,6 @@
 package com.github.shCHO9801.climbing_record_app.config;
 
-import com.github.shCHO9801.climbing_record_app.auth.jwt.JwtFilter;
+import com.github.shCHO9801.climbing_record_app.user.auth.jwt.JwtFilter;
 import com.github.shCHO9801.climbing_record_app.user.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
