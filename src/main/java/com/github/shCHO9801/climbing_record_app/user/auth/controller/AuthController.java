@@ -64,7 +64,7 @@ public class AuthController {
 
     loggingUtil.logRequest("회원가입", registerRequest);
 
-    if (userRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
+    if (userRepository.existsById(registerRequest.getUsername())) {
       loggingUtil.logError("회원가입", registerRequest.getUsername() + ": 이미 존재하는 사용자명");
       throw new CustomException(USER_ALREADY_EXISTS);
     }
