@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.user.auth.controller;
+package com.github.shCHO9801.climbing_record_app.user.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
