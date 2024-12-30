@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.user.auth.dto;
+package com.github.shCHO9801.climbing_record_app.user.dto;
 
 
 import com.github.shCHO9801.climbing_record_app.user.entity.Role;

@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.user.auth.dto;
+package com.github.shCHO9801.climbing_record_app.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -3,7 +3,7 @@ package com.github.shCHO9801.climbing_record_app.user.service;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
 
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
-import com.github.shCHO9801.climbing_record_app.user.auth.dto.CustomerUserDetails;
+import com.github.shCHO9801.climbing_record_app.user.dto.CustomerUserDetails;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
