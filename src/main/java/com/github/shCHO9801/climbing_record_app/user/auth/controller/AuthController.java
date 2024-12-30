@@ -4,15 +4,16 @@ import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
 import static com.github.shCHO9801.climbing_record_app.user.entity.Role.USER;
 
+import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.user.auth.dto.AuthRequest;
 import com.github.shCHO9801.climbing_record_app.user.auth.dto.AuthResponse;
 import com.github.shCHO9801.climbing_record_app.user.auth.dto.RegisterRequest;
-import com.github.shCHO9801.climbing_record_app.user.auth.jwt.JwtUtil;
-import com.github.shCHO9801.climbing_record_app.exception.CustomException;
+import com.github.shCHO9801.climbing_record_app.util.JwtUtil;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
-import com.github.shCHO9801.climbing_record_app.util.LoggingUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,11 +34,12 @@ public class AuthController {
   private final JwtUtil jwtUtil;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
-  private final LoggingUtil loggingUtil;
+
+  private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-    loggingUtil.logRequest("로그인", authRequest);
+    logger.info("로그인 시도: 사용자명={}", authRequest.getUsername());
 
     try {
       Authentication authentication = authenticationManager.authenticate(
@@ -47,14 +49,11 @@ public class AuthController {
       String username = authentication.getName();
 
       String token = jwtUtil.generateToken(username, "USER");
-      loggingUtil.logSuccess("로그인", "JWT 토큰 발급 성공");
+      logger.info("로그인 성공: 사용자명={}, JWT 토큰 발급", username);
 
       return ResponseEntity.ok(new AuthResponse(token));
-    } catch (BadCredentialsException e) {
-      loggingUtil.logError("로그인", "잘못된 자격 증명");
-      throw new CustomException(USER_NOT_FOUND);
     } catch (Exception e) {
-      loggingUtil.logError("로그인", "로그인 실패: " + e.getMessage());
+      logger.error("로그인 실패: 잘못된 자격 증명 - 사용자명-{}", authRequest.getUsername());
       throw new CustomException(USER_NOT_FOUND);
     }
   }
@@ -62,10 +61,10 @@ public class AuthController {
   @PostMapping("/register")
   public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
 
-    loggingUtil.logRequest("회원가입", registerRequest);
+    logger.info("회원가입 시도: 사용자명-{}, 이메일={}", registerRequest.getUsername(), registerRequest.getPassword());
 
     if (userRepository.existsById(registerRequest.getUsername())) {
-      loggingUtil.logError("회원가입", registerRequest.getUsername() + ": 이미 존재하는 사용자명");
+      logger.error("회원가입 실패: 이미 존재하는 사용자명={}", registerRequest.getUsername());
       throw new CustomException(USER_ALREADY_EXISTS);
     }
 
@@ -78,8 +77,7 @@ public class AuthController {
 
     userRepository.save(user);
 
-    loggingUtil.logSuccess("회원가입", user.getId() + ": 회원가입 성공");
-
+    logger.info("회원가입 성공: 사용자명={}", registerRequest.getUsername());
     return ResponseEntity.ok("회원가입이 완료되었습니다.");
   }
 }

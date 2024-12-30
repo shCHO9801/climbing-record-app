@@ -1,6 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.config;
 
-import com.github.shCHO9801.climbing_record_app.user.auth.jwt.JwtFilter;
+import com.github.shCHO9801.climbing_record_app.filter.MDCRequestLoggingFilter;
+import com.github.shCHO9801.climbing_record_app.filter.JwtFilter;
 import com.github.shCHO9801.climbing_record_app.user.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
   private final CustomUserDetailsService userDetailsService;
   private final JwtFilter jwtFilter;
+  private final MDCRequestLoggingFilter mdcFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -36,6 +38,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
         )
         .authenticationProvider(authenticationProvider())
+        .addFilterBefore(mdcFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }

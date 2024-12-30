@@ -1,10 +1,9 @@
-package com.github.shCHO9801.climbing_record_app.user.auth.jwt;
+package com.github.shCHO9801.climbing_record_app.util;
 
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.JWT_GENERATION_FAILED;
 
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
-import com.github.shCHO9801.climbing_record_app.util.LoggingUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -12,6 +11,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,16 +21,14 @@ public class JwtUtil {
 
   private final String SECRET_KEY;
   private final long EXPIRATION_TIME;
-  private final LoggingUtil loggingUtil;
+  private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
   public JwtUtil(
       @Value("${jwt.secret}") String secretKey,
-      @Value("${jwt.expiration}") long expirationTime,
-      LoggingUtil loggingUtil
+      @Value("${jwt.expiration}") long expirationTime
   ) {
     this.SECRET_KEY = secretKey;
     this.EXPIRATION_TIME = expirationTime;
-    this.loggingUtil = loggingUtil;
   }
 
   private Key getSigningKey() {
@@ -46,7 +45,7 @@ public class JwtUtil {
           .signWith(getSigningKey(), SignatureAlgorithm.HS256)
           .compact();
     } catch (JwtException | IllegalArgumentException e) {
-      loggingUtil.logError("JwtUtil", "JWT 토큰 생성 중 오류 발생: " + e.getMessage());
+      logger.error("JwtUtil - JWT 토큰 생성 중 오류 발생: {}", e.getMessage());
       throw new CustomException(JWT_GENERATION_FAILED);
     }
   }
@@ -60,10 +59,10 @@ public class JwtUtil {
           .getBody()
           .getSubject();
     } catch (ExpiredJwtException e) {
-      loggingUtil.logError("JwtUtil", "만료된 JWT 토큰: " + e.getMessage());
+      logger.error("JwtUtil - 만료된 JWT 토큰: {}", e.getMessage());
       throw new CustomException(ErrorCode.EXPIRED_JWT);
     } catch (JwtException | IllegalArgumentException e) {
-      loggingUtil.logError("JwtUtil", "유효하지 않은 JWT 토큰: " + e.getMessage());
+      logger.error("JwtUtil - 유효하지 않은 JWT 토큰: {}", e.getMessage());
       throw new CustomException(ErrorCode.INVALID_JWT);
     }
   }
@@ -76,7 +75,7 @@ public class JwtUtil {
           .parseClaimsJws(token);
       return true;
     } catch (Exception e) {
-      loggingUtil.logError("JwtUtil", "잘못된 JWT : " + e.getMessage());
+      logger.error("JwtUtil - 잘못된 JWT: {}", e.getMessage());
       throw new CustomException(ErrorCode.INVALID_JWT);
     }
   }
