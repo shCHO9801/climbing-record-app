@@ -5,7 +5,7 @@ spring:
 
 # 데이터 베이스 연결 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/climbing?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/climbing?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: climbing
     password: climbing
 
@@ -15,7 +15,11 @@ spring:
     show-sql: true      # 실행되는 SQL 퀴리 로그 출력
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+
+jwt:
+  secret: "It'sMyClimbingAppSecretKeyForJWTGeneration3391"
+  expiration: 86400000
+
 
 server:
   port: 8080
