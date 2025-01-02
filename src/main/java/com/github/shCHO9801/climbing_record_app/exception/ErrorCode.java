@@ -13,7 +13,10 @@ public enum ErrorCode {
   // JWT 관련 에러 코드 추가
   INVALID_JWT(HttpStatus.UNAUTHORIZED, "유효하지 않은 JWT 토큰입니다."),
   EXPIRED_JWT(HttpStatus.UNAUTHORIZED, "만료된 JWT 토큰입니다."),
-  JWT_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JWT 토큰 생성에 실패했습니다.");
+  JWT_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JWT 토큰 생성에 실패했습니다."),
+
+  JSON_CONVERT_ERROR(HttpStatus.BAD_REQUEST, "JSON 변환 오류입니다."),
+  CLIMBING_GYM_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 존재하는 클라이밍장 입니다.");
 
 
   private final HttpStatus httpStatus;
