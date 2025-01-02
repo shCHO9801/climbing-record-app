@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface ClimbingGymRepository extends JpaRepository<ClimbingGym, Long> {
 
   boolean existsByName(String name);
+  ClimbingGym findByName(String name);
 }

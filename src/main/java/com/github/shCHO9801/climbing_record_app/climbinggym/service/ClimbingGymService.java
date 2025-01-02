@@ -1,5 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.climbinggym.service;
 
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.CLIMBING_GYM_ALREADY_EXISTS;
+
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym.Request;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym.Response;
@@ -7,7 +9,6 @@ import com.github.shCHO9801.climbing_record_app.climbinggym.dto.GetGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
-import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,8 +24,8 @@ public class ClimbingGymService {
   private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   public CreateGym.Response createClimbingGym(CreateGym.Request request) {
-    if(climbingGymRepository.existsByName(request.getName())){
-      throw new CustomException(ErrorCode.CLIMBING_GYM_ALREADY_EXISTS);
+    if (climbingGymRepository.existsByName(request.getName())) {
+      throw new CustomException(CLIMBING_GYM_ALREADY_EXISTS);
     }
 
     ClimbingGym climbingGym = makeGym(request);
