@@ -1,7 +1,11 @@
 spring:
+  config:
+    activate:
+      on-profile: testH2
+
   datasource:
     url: jdbc:h2:mem:testdb
-    driverClassName: org.h2.Driver
+    driver-class-name: org.h2.Driver
     username: sa
     password:
   jpa:
