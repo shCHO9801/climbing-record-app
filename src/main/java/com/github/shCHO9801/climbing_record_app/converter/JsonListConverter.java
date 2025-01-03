@@ -14,10 +14,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Converter
-public class JsonConverter implements AttributeConverter<List<String>, String> {
+public class JsonListConverter implements AttributeConverter<List<String>, String> {
 
   private final ObjectMapper mapper = new ObjectMapper();
-  private static final Logger logger = LoggerFactory.getLogger(JsonConverter.class);
+  private static final Logger logger = LoggerFactory.getLogger(JsonListConverter.class);
 
   @Override
   public String convertToDatabaseColumn(List<String> list) {

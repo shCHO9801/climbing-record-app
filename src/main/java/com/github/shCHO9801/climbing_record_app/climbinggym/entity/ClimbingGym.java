@@ -1,6 +1,6 @@
 package com.github.shCHO9801.climbing_record_app.climbinggym.entity;
 
-import com.github.shCHO9801.climbing_record_app.converter.JsonConverter;
+import com.github.shCHO9801.climbing_record_app.converter.JsonListConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -42,7 +42,7 @@ public class ClimbingGym {
   private String parkingInfo;
 
   @Column(name = "difficulty_chart", columnDefinition = "JSON")
-  @Convert(converter = JsonConverter.class)
+  @Convert(converter = JsonListConverter.class)
   private List<String> difficultyChart;
 
   private String amenities;
