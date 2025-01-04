@@ -1,5 +1,6 @@
 package com.github.shCHO9801.climbing_record_app.climbinggym.dto;
 
+import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,11 +18,22 @@ public class GetGym {
 
   private Long id;
   private String name;
-  private Point location;
+  private String location;
   private Integer price;
   private String parkingInfo;
   private List<String> difficultyChart;
   private String amenities;
   private String createdAt;
   private String updatedAt;
+
+  public static GetGym from(ClimbingGym gym) {
+    return GetGym.builder()
+        .id(gym.getId())
+        .name(gym.getName())
+        .location(gym.getLocation().toText())
+        .price(gym.getPrice())
+        .parkingInfo(gym.getParkingInfo())
+        .amenities(gym.getAmenities())
+        .build();
+  }
 }

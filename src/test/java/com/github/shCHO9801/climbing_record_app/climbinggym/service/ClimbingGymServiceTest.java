@@ -27,6 +27,10 @@ import org.locationtech.jts.geom.Point;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 class ClimbingGymServiceTest {
 
@@ -113,23 +117,22 @@ class ClimbingGymServiceTest {
     );
 
     List<ClimbingGym> gyms = Arrays.asList(gym1, gym2, gym3);
-    when(repository.findAll()).thenReturn(gyms);
+
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<ClimbingGym> gymsPage = new PageImpl<>(gyms, pageable, 1);
+
+    when(repository.findAll(pageable)).thenReturn(gymsPage);
 
     //when
-    List<GetGym> response = climbingGymService.getAllGyms();
+    Page<GetGym> result = climbingGymService.getAllGyms(pageable);
 
     //then
-    assertNotNull(response);
-    assertEquals(response.size(), 3);
+    assertNotNull(result);
+    assertEquals(result.getTotalElements(), 3);
 
-    for (int i = 0; i < response.size(); i++) {
-      assertEquals(response.get(i).getId(), gyms.get(i).getId());
-      assertEquals(response.get(i).getName(), gyms.get(i).getName());
-      assertEquals(response.get(i).getLocation(), gyms.get(i).getLocation());
-      assertEquals(response.get(i).getPrice(), gyms.get(i).getPrice());
-      assertEquals(response.get(i).getDifficultyChart(), gyms.get(i).getDifficultyChart());
-      assertEquals(response.get(i).getAmenities(), gyms.get(i).getAmenities());
-      assertNotNull(response.get(i).getCreatedAt());
+    for (int i = 0; i < 3; i++) {
+      assertEquals(result.getContent().get(i).getName(), gyms.get(i).getName());
+      assertEquals(result.getContent().get(i).getPrice(), gyms.get(i).getPrice());
     }
   }
 

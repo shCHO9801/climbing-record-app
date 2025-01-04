@@ -10,9 +10,9 @@ import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,7 +21,8 @@ public class ClimbingGymService {
 
   private final ClimbingGymRepository climbingGymRepository;
 
-  private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+  private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+      "yyyy-MM-dd HH:mm:ss");
 
   public CreateGym.Response createClimbingGym(CreateGym.Request request) {
     if (climbingGymRepository.existsByName(request.getName())) {
@@ -35,20 +36,9 @@ public class ClimbingGymService {
     return returnResponse(savedGym);
   }
 
-  public List<GetGym> getAllGyms() {
-    return climbingGymRepository.findAll().stream()
-        .map(gym -> GetGym.builder()
-            .id(gym.getId())
-            .name(gym.getName())
-            .location(gym.getLocation())
-            .price(gym.getPrice())
-            .parkingInfo(gym.getParkingInfo())
-            .difficultyChart(gym.getDifficultyChart())
-            .amenities(gym.getAmenities())
-            .createdAt(gym.getCreatedAt().format(formatter))
-            .updatedAt(gym.getUpdatedAt().format(formatter))
-            .build())
-        .collect(Collectors.toList());
+  public Page<GetGym> getAllGyms(Pageable pageable) {
+    Page<ClimbingGym> gymsPage = climbingGymRepository.findAll(pageable);
+    return gymsPage.map(this::convertToGym);
   }
 
   private ClimbingGym makeGym(Request request) {
@@ -69,5 +59,9 @@ public class ClimbingGymService {
         .location(savedGym.getLocation())
         .createdAt(savedGym.getCreatedAt().format(formatter))
         .build();
+  }
+
+  private GetGym convertToGym(ClimbingGym savedGym) {
+    return GetGym.from(savedGym);
   }
 }
