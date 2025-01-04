@@ -155,8 +155,10 @@ class ClimbingGymControllerTest {
     mockMvc.perform(get("/api/gyms")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("더클라임 강남점"))
-        .andExpect(jsonPath("$[1].name").value("더클라임 홍대점"));
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[0].name").value(request.getName()))
+        .andExpect(jsonPath("$.content[1].name").value(newGym.getName()));
   }
 }

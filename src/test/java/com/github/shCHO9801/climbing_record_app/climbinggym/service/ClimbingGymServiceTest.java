@@ -100,7 +100,12 @@ class ClimbingGymServiceTest {
   @DisplayName("getAllGyms 성공")
   void getAllGymsSuccess() {
     //given
-    ClimbingGym gym1 = makeGym(request);
+    ClimbingGym gym1 = makeGym(
+        4L,
+        "에픽클라임 망포점",
+        new GeometryFactory().createPoint(new Coordinate(3, 190)),
+        20000
+    );
 
     ClimbingGym gym2 = makeGym(
         2L,
@@ -108,6 +113,7 @@ class ClimbingGymServiceTest {
         new GeometryFactory().createPoint(new Coordinate(11, 11)),
         20000
     );
+
 
     ClimbingGym gym3 = makeGym(
         3L,
@@ -119,7 +125,7 @@ class ClimbingGymServiceTest {
     List<ClimbingGym> gyms = Arrays.asList(gym1, gym2, gym3);
 
     Pageable pageable = PageRequest.of(0, 10);
-    Page<ClimbingGym> gymsPage = new PageImpl<>(gyms, pageable, 1);
+    Page<ClimbingGym> gymsPage = new PageImpl<>(gyms, pageable, gyms.size());
 
     when(repository.findAll(pageable)).thenReturn(gymsPage);
 
@@ -129,10 +135,23 @@ class ClimbingGymServiceTest {
     //then
     assertNotNull(result);
     assertEquals(result.getTotalElements(), 3);
+    assertEquals(result.getTotalPages(), 1);
 
-    for (int i = 0; i < 3; i++) {
-      assertEquals(result.getContent().get(i).getName(), gyms.get(i).getName());
-      assertEquals(result.getContent().get(i).getPrice(), gyms.get(i).getPrice());
+    List<GetGym> content = result.getContent();
+    assertEquals(content.size(), 3);
+
+    for (int i = 0; i < content.size(); i++) {
+      GetGym dto = content.get(i);
+      ClimbingGym gym = gyms.get(i);
+
+      assertEquals(gym.getId(), dto.getId());
+      assertEquals(dto.getName(), gym.getName());
+      assertEquals(dto.getLocation(), gym.getLocation().toText());
+      assertEquals(dto.getPrice(), gym.getPrice());
+      assertEquals(dto.getAmenities(), gym.getAmenities());
+      assertEquals(dto.getDifficultyChart(), gym.getDifficultyChart());
+      assertEquals(dto.getParkingInfo(), gym.getParkingInfo());
+      assertNotNull(dto.getCreatedAt());
     }
   }
 
