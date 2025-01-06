@@ -59,13 +59,13 @@ public class User {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column(nullable = false)
+  @Column
   private LocalDateTime updatedAt;
 
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDateTime.now();
-    this.updatedAt = LocalDateTime.now();
+    this.updatedAt = null;
   }
 
   @PreUpdate
