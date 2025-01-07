@@ -1,9 +1,8 @@
-package com.github.shCHO9801.climbing_record_app.user.entity;
+package com.github.shCHO9801.climbing_record_app.climbinggym.entity;
 
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,54 +10,50 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
+import org.locationtech.jts.geom.Point;
 
 @Entity
-@Table(name = "users")
+@Table(name = "climbing_gym")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "password")
-@EqualsAndHashCode(of = {"userNum", "id", "email"})
-public class User {
+public class ClimbingGym {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long userNum;
+  private Long id;
 
-  @Column(nullable = false, unique = true, length = 50)
-  private String id;
-
-  @Column(nullable = false, length = 255)
-  private String password;
-
-  @Column(nullable = false, unique = true, length = 100)
-  private String email;
-
-  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private Role role;
+  private String name;
 
-  private String nickname;
+  @Column(nullable = false, columnDefinition = "POINT")
+  private Point location;
 
-  private Double armLength;
+  @Column(nullable = false)
+  private Integer price;
 
-  private Double height;
+  private String parkingInfo;
 
-  @Column(name = "equipment_info", columnDefinition = "JSON")
-  private String equipmentInfo;
+  @Type(JsonType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "difficulty_chart", columnDefinition = "JSON")
+  private List<String> difficultyChart;
+
+  private String amenities;
 
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column
+  @Column(nullable = true)
   private LocalDateTime updatedAt;
 
   @PrePersist

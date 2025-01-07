@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
 import com.github.shCHO9801.climbing_record_app.user.dto.AuthRequest;
 import com.github.shCHO9801.climbing_record_app.user.dto.RegisterRequest;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
@@ -24,7 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles("testH2")
 class AuthControllerTest {
 
   @Autowired
@@ -34,10 +35,14 @@ class AuthControllerTest {
   private UserRepository userRepository;
 
   @Autowired
+  private ClimbingSessionRepository sessionRepository;
+
+  @Autowired
   private ObjectMapper objectMapper;
 
   @BeforeEach
   public void setUp() {
+    sessionRepository.deleteAll();
     userRepository.deleteAll();
   }
 
