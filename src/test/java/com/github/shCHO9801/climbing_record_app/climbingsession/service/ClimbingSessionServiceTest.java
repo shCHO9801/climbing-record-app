@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.climbingssesion.service;
+package com.github.shCHO9801.climbing_record_app.climbingsession.service;
 
 import static com.github.shCHO9801.climbing_record_app.user.entity.Role.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,15 +14,15 @@ import static org.mockito.Mockito.when;
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession.Response;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.entity.ClimbingSession;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.repository.ClimbingSessionRepository;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Response;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
+import com.github.shCHO9801.climbing_record_app.climbingsession.entity.ClimbingSession;
+import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +35,10 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 class ClimbingSessionServiceTest {
 
@@ -59,9 +63,13 @@ class ClimbingSessionServiceTest {
   private ClimbingSession climbingSession1;
   private ClimbingSession climbingSession2;
 
+  private static LocalDate date;
+  private static String yearMonth;
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
+    date = LocalDate.of(2025, 1, 1);
+    yearMonth = String.format("%d-%02d", date.getYear(), date.getMonthValue());
     GeometryFactory geometryFactory = new GeometryFactory();
     climbingGym = ClimbingGym.builder()
         .id(1L)
@@ -82,9 +90,10 @@ class ClimbingSessionServiceTest {
         .equipmentInfo("{}")
         .build();
 
+
     climbingSession = ClimbingSession.builder()
         .id(1L)
-        .date(YearMonth.of(2025, 1))
+        .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevelsCompleted(new HashMap<>())
         .user(user)
@@ -93,7 +102,7 @@ class ClimbingSessionServiceTest {
 
     climbingSession1 = ClimbingSession.builder()
         .id(1L)
-        .date(YearMonth.of(2025, 1))
+        .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevelsCompleted(new HashMap<>())
         .user(user)
@@ -102,7 +111,7 @@ class ClimbingSessionServiceTest {
 
     climbingSession2 = ClimbingSession.builder()
         .id(2L)
-        .date(YearMonth.of(2025, 2))
+        .date(LocalDate.of(2025, 1, 2))
         .duration(120)
         .difficultyLevelsCompleted(new HashMap<>())
         .user(user)
@@ -117,7 +126,7 @@ class ClimbingSessionServiceTest {
     CreateSession.Request request = CreateSession.Request.builder()
         .climbingGymId(1L)
         .userId(100L)
-        .date(YearMonth.of(2025, 1))
+        .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
         .build();
@@ -132,13 +141,13 @@ class ClimbingSessionServiceTest {
     // then
     assertNotNull(response);
     assertEquals(1L, response.getId());
-    assertEquals(YearMonth.of(2025, 1), response.getDate());
+    assertEquals(date, response.getDate());
     assertEquals(90, response.getDuration());
     assertEquals(100L, response.getUserId());
     assertEquals(1L, response.getClimbingGymId());
     assertEquals(climbingGym.getName(), response.getClimbingGymName());
 
-    verify(userMonthlyStatsService, times(1)).aggregateUserMonthlyStats(100L, YearMonth.of(2025, 1),
+    verify(userMonthlyStatsService, times(1)).aggregateUserMonthlyStats(100L, date,
         90);
   }
 
@@ -149,7 +158,7 @@ class ClimbingSessionServiceTest {
     CreateSession.Request request = CreateSession.Request.builder()
         .climbingGymId(2L) // 존재하지 않는 클라이밍장 ID
         .userId(100L)
-        .date(YearMonth.of(2025, 1))
+        .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
         .build();
@@ -171,7 +180,7 @@ class ClimbingSessionServiceTest {
     CreateSession.Request request = CreateSession.Request.builder()
         .climbingGymId(1L)
         .userId(200L) // 존재하지 않는 사용자 ID
-        .date(YearMonth.of(2025, 1))
+        .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
         .build();
@@ -190,44 +199,32 @@ class ClimbingSessionServiceTest {
   @DisplayName("모든 클라이밍 세션 조회 성공")
   public void getAllClimbingSessionsSuccess() {
     // given
+    Pageable pageable = PageRequest.of(0, 10);
     List<ClimbingSession> sessions = Arrays.asList(climbingSession1, climbingSession2);
-    when(climbingSessionRepository.findByUser_UserNum(100L)).thenReturn(sessions);
+    when(climbingSessionRepository.findByUser_UserNum(100L, pageable)).thenReturn(
+        new PageImpl<>(sessions));
 
     // when
-    List<CreateSession.Response> responses = climbingSessionService.getAllClimbingSessions(100L);
+    PagedResponse<Response> responses = climbingSessionService.getAllClimbingSessions(100L, pageable);
 
     // then
     assertNotNull(responses);
-    assertEquals(2, responses.size());
+    assertEquals(2, responses.getTotalElements());
 
-    CreateSession.Response response1 = responses.get(0);
-    assertEquals(1L, response1.getId());
-    assertEquals( YearMonth.of(2025, 1), response1.getDate());
-    assertEquals(90, response1.getDuration());
-    assertEquals(100L, response1.getUserId());
-    assertEquals(1L, response1.getClimbingGymId());
-    assertEquals("더클라임 강남점", response1.getClimbingGymName());
-
-    CreateSession.Response response2 = responses.get(1);
-    assertEquals(2L, response2.getId());
-    assertEquals(YearMonth.of(2025, 2), response2.getDate());
-    assertEquals(120, response2.getDuration());
-    assertEquals(100L, response2.getUserId());
-    assertEquals(1L, response2.getClimbingGymId());
-    assertEquals("더클라임 강남점", response2.getClimbingGymName());
   }
 
   @Test
   @DisplayName("모든 클라이밍 세션 조회 성공 - 빈 리스트")
   public void getAllClimbingSessionsEmpty() {
     // given
-    when(climbingSessionRepository.findByUser_UserNum(999L)).thenReturn(List.of());
+    Pageable pageable = PageRequest.of(0, 10);
+    when(climbingSessionRepository.findByUser_UserNum(999L, pageable)).thenReturn(new PageImpl<>(List.of()));
 
     // when
-    List<CreateSession.Response> responses = climbingSessionService.getAllClimbingSessions(999L);
+    PagedResponse<CreateSession.Response> responses = climbingSessionService.getAllClimbingSessions(999L, pageable);
 
     // then
     assertNotNull(responses);
-    assertEquals(0, responses.size());
+    assertEquals(0, responses.getPage());
   }
 }

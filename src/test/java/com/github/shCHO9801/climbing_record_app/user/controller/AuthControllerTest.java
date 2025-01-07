@@ -8,12 +8,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.repository.ClimbingSessionRepository;
+import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
 import com.github.shCHO9801.climbing_record_app.user.dto.AuthRequest;
 import com.github.shCHO9801.climbing_record_app.user.dto.RegisterRequest;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
