@@ -1,8 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.climbinggym.entity;
 
-import com.github.shCHO9801.climbing_record_app.converter.JsonListConverter;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +15,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.Point;
 
 @Entity
@@ -41,8 +43,9 @@ public class ClimbingGym {
 
   private String parkingInfo;
 
+  @Type(JsonType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "difficulty_chart", columnDefinition = "JSON")
-  @Convert(converter = JsonListConverter.class)
   private List<String> difficultyChart;
 
   private String amenities;
@@ -50,12 +53,13 @@ public class ClimbingGym {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column
+  @Column(nullable = true)
   private LocalDateTime updatedAt;
 
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDateTime.now();
+    this.updatedAt = null;
   }
 
   @PreUpdate

@@ -1,12 +1,9 @@
-package com.github.shCHO9801.climbing_record_app.climbingssesion.entity;
+package com.github.shCHO9801.climbing_record_app.climbingsession.entity;
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
-import com.github.shCHO9801.climbing_record_app.converter.JsonListConverter;
-import com.github.shCHO9801.climbing_record_app.converter.JsonMapConverter;
-import com.github.shCHO9801.climbing_record_app.converter.YearMonthConverter;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -16,8 +13,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +20,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "climbing_sessions")
@@ -38,14 +36,13 @@ public class ClimbingSession {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "dt", nullable = false)
-  @Convert(converter = YearMonthConverter.class)
-  private YearMonth date;
+  private LocalDate date;
 
   private int duration;
 
+  @Type(JsonType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "difficulty_levels_completed", columnDefinition = "JSON")
-  @Convert(converter = JsonMapConverter.class)
   private Map<String, Integer> difficultyLevelsCompleted;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -59,7 +56,7 @@ public class ClimbingSession {
   public void setUpDifficultyLevels(List<String> difficultyChart) {
     if (this.difficultyLevelsCompleted == null) {
       this.difficultyLevelsCompleted = new HashMap<>();
-      for(String level : difficultyChart) {
+      for (String level : difficultyChart) {
         this.difficultyLevelsCompleted.put(level, 0);
       }
     }
