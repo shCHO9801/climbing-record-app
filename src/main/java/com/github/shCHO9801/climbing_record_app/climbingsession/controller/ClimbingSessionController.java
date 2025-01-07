@@ -1,12 +1,14 @@
-package com.github.shCHO9801.climbing_record_app.climbingssesion.controller;
+package com.github.shCHO9801.climbing_record_app.climbingsession.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession.Request;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession.Response;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.service.ClimbingSessionService;
-import java.util.List;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Request;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Response;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
+import com.github.shCHO9801.climbing_record_app.climbingsession.service.ClimbingSessionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,10 +34,13 @@ public class ClimbingSessionController {
   }
 
   @GetMapping
-  public ResponseEntity<List<Response>> getAllClimbingSessions(
-      @RequestParam Long userNum
+  public ResponseEntity<PagedResponse<Response>> getAllClimbingSessions(
+      @RequestParam Long userNum,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size
   ) {
-    return ResponseEntity.ok(climbingSessionService.getAllClimbingSessions(userNum));
+    Pageable pageable = PageRequest.of(page, size);
+    return ResponseEntity.ok(climbingSessionService.getAllClimbingSessions(userNum, pageable));
   }
 
 }

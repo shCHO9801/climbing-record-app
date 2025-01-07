@@ -1,23 +1,24 @@
-package com.github.shCHO9801.climbing_record_app.climbingssesion.service;
+package com.github.shCHO9801.climbing_record_app.climbingsession.service;
 
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.CLIMBING_GYM_NOT_FOUND;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession.Request;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.dto.CreateSession.Response;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.entity.ClimbingSession;
-import com.github.shCHO9801.climbing_record_app.climbingssesion.repository.ClimbingSessionRepository;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Request;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Response;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
+import com.github.shCHO9801.climbing_record_app.climbingsession.entity.ClimbingSession;
+import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
-import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -39,19 +40,28 @@ public class ClimbingSessionService {
     ClimbingSession session = createSession(gym, user, request);
     ClimbingSession saved = climbingSessionRepository.save(session);
 
-    YearMonth sessionMonth = YearMonth.from(saved.getDate());
     monthlyStatsService.aggregateUserMonthlyStats(
         saved.getUser().getUserNum(),
-        sessionMonth,
+        saved.getDate(),
         saved.getDuration());
 
     return createResponse(saved);
   }
 
-  public List<Response> getAllClimbingSessions(Long userNum) {
-    return climbingSessionRepository.findByUser_UserNum(userNum).stream()
+  public PagedResponse<Response> getAllClimbingSessions(Long userNum, Pageable pageable) {
+    Page<ClimbingSession> page = climbingSessionRepository.findByUser_UserNum(userNum, pageable);
+    List<Response> content = page.stream()
         .map(this::mapToResponse)
-        .collect(Collectors.toList());
+        .toList();
+
+    return PagedResponse.<Response>builder()
+        .content(content)
+        .page(page.getNumber())
+        .size(page.getSize())
+        .totalElements(page.getTotalElements())
+        .totalPages(page.getTotalPages())
+        .last(page.isLast())
+        .build();
   }
 
   private ClimbingSession createSession(ClimbingGym gym, User user, Request request) {
