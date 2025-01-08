@@ -3,9 +3,8 @@ package com.github.shCHO9801.climbing_record_app.user.service;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
 
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
-import com.github.shCHO9801.climbing_record_app.user.dto.ProfileDto;
-import com.github.shCHO9801.climbing_record_app.user.dto.ProfileDto.Request;
-import com.github.shCHO9801.climbing_record_app.user.dto.ProfileDto.Response;
+import com.github.shCHO9801.climbing_record_app.user.dto.ProfileRequest;
+import com.github.shCHO9801.climbing_record_app.user.dto.ProfileResponse;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,14 +16,14 @@ public class ProfileService {
 
   private final UserRepository userRepository;
 
-  public ProfileDto.Response getProfile(String username) {
+  public ProfileResponse getProfile(String username) {
     User user = userRepository.findByUsername(username)
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
     return createResponse(user);
   }
 
-  public Response updateProfile(String username, Request request) {
+  public ProfileResponse updateProfile(String username, ProfileRequest request) {
     User user = userRepository.findByUsername(username)
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
     if (request.getNickname() != null) {
@@ -44,9 +43,14 @@ public class ProfileService {
     return createResponse(saved);
   }
 
-  private Response createResponse(User user) {
-    return Response.builder().id(user.getId()).email(user.getEmail()).nickname(user.getNickname())
-        .height(user.getHeight()).armLength(user.getArmLength())
-        .equipmentInfo(user.getEquipmentInfo()).build();
+  private ProfileResponse createResponse(User user) {
+    return ProfileResponse.builder()
+        .id(user.getId())
+        .email(user.getEmail())
+        .nickname(user.getNickname())
+        .height(user.getHeight())
+        .armLength(user.getArmLength())
+        .equipmentInfo(user.getEquipmentInfo())
+        .build();
   }
 }
