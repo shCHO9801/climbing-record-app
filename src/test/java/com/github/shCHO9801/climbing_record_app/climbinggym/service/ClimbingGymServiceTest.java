@@ -9,8 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym;
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym.Request;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymRequest;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymResponse;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.GetGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
@@ -41,15 +41,16 @@ class ClimbingGymServiceTest {
   @Mock
   private ClimbingGymRepository repository;
 
-  private CreateGym.Request request;
+  private CreateGymRequest request;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
     GeometryFactory geometryFactory = new GeometryFactory();
-    request = CreateGym.Request.builder()
+    request = CreateGymRequest.builder()
         .name("더클라임 강남점")
-        .location(geometryFactory.createPoint(new Coordinate(127.0, 37.0)))
+        .latitude(127.0)
+        .longitude(37.0)
         .price(23000)
         .parkingInfo("30분 무료, 이후 30분당 3000원")
         .difficultyChart(Arrays.asList("하양", "노랑", "주황", "초록", "파랑", "빨강", "보라", "회색", "갈색", "검정"))
@@ -68,13 +69,13 @@ class ClimbingGymServiceTest {
     when(repository.save(any(ClimbingGym.class))).thenReturn(savedGym);
 
     //when
-    CreateGym.Response response = climbingGymService.createClimbingGym(request);
+    CreateGymResponse response = climbingGymService.createClimbingGym(request);
 
     //then
     assertNotNull(response);
     assertEquals(response.getId(), savedGym.getId());
     assertEquals(response.getName(), savedGym.getName());
-    assertEquals(response.getLocation(), savedGym.getLocation());
+    assertEquals(new GeometryFactory().createPoint(new Coordinate(response.getLatitude(), response.getLongitude())), savedGym.getLocation());
     assertNotNull(response.getCreatedAt());
 
     verify(repository, times(1)).existsByName(request.getName());
@@ -114,7 +115,6 @@ class ClimbingGymServiceTest {
         new GeometryFactory().createPoint(new Coordinate(11, 11)),
         20000
     );
-
 
     ClimbingGym gym3 = makeGym(
         3L,
@@ -156,11 +156,12 @@ class ClimbingGymServiceTest {
     }
   }
 
-  private ClimbingGym makeGym(Request request) {
+  private ClimbingGym makeGym(CreateGymRequest request) {
     return ClimbingGym.builder()
         .id(1L)
         .name(request.getName())
-        .location(request.getLocation())
+        .location(new GeometryFactory().createPoint(
+            new Coordinate(request.getLatitude(), request.getLongitude())))
         .price(request.getPrice())
         .parkingInfo(request.getParkingInfo())
         .difficultyChart(request.getDifficultyChart())

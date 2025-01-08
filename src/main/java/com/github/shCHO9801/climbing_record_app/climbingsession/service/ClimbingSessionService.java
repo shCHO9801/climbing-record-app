@@ -5,9 +5,8 @@ import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Request;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Response;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionRequest;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionResponse;
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
 import com.github.shCHO9801.climbing_record_app.climbingsession.entity.ClimbingSession;
 import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
@@ -30,7 +29,7 @@ public class ClimbingSessionService {
   private final UserRepository userRepository;
   private final UserMonthlyStatsService monthlyStatsService;
 
-  public Response createClimbingSession(Request request) {
+  public CreateSessionResponse createClimbingSession(CreateSessionRequest request) {
     ClimbingGym gym = climbingGymRepository.findById(request.getClimbingGymId())
         .orElseThrow(() -> new CustomException(CLIMBING_GYM_NOT_FOUND));
 
@@ -48,13 +47,14 @@ public class ClimbingSessionService {
     return createResponse(saved);
   }
 
-  public PagedResponse<Response> getAllClimbingSessions(Long userNum, Pageable pageable) {
+  public PagedResponse<CreateSessionResponse> getAllClimbingSessions(Long userNum,
+      Pageable pageable) {
     Page<ClimbingSession> page = climbingSessionRepository.findByUser_UserNum(userNum, pageable);
-    List<Response> content = page.stream()
+    List<CreateSessionResponse> content = page.stream()
         .map(this::mapToResponse)
         .toList();
 
-    return PagedResponse.<Response>builder()
+    return PagedResponse.<CreateSessionResponse>builder()
         .content(content)
         .page(page.getNumber())
         .size(page.getSize())
@@ -64,7 +64,7 @@ public class ClimbingSessionService {
         .build();
   }
 
-  private ClimbingSession createSession(ClimbingGym gym, User user, Request request) {
+  private ClimbingSession createSession(ClimbingGym gym, User user, CreateSessionRequest request) {
     ClimbingSession session = ClimbingSession.builder()
         .date(request.getDate())
         .duration(request.getDuration())
@@ -77,8 +77,8 @@ public class ClimbingSessionService {
     return session;
   }
 
-  private CreateSession.Response createResponse(ClimbingSession session) {
-    return CreateSession.Response.builder()
+  private CreateSessionResponse createResponse(ClimbingSession session) {
+    return CreateSessionResponse.builder()
         .id(session.getId())
         .date(session.getDate())
         .duration(session.getDuration())
@@ -89,8 +89,8 @@ public class ClimbingSessionService {
         .build();
   }
 
-  private Response mapToResponse(ClimbingSession session) {
-    return Response.builder()
+  private CreateSessionResponse mapToResponse(ClimbingSession session) {
+    return CreateSessionResponse.builder()
         .id(session.getId())
         .date(session.getDate())
         .duration(session.getDuration())

@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionRequest;
 import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
 import com.github.shCHO9801.climbing_record_app.user.dto.RegisterRequest;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
@@ -105,7 +105,7 @@ class ClimbingSessionControllerTest {
   @Test
   @DisplayName("클라이밍 세션 생성 및 통합 테스트 - 성공")
   void createAndGetClimbingSession() throws Exception {
-    CreateSession.Request request = CreateSession.Request.builder()
+    CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(climbingGym.getId())
         .userId(user.getUserNum())
         .date(LocalDate.of(2025, 1, 1))

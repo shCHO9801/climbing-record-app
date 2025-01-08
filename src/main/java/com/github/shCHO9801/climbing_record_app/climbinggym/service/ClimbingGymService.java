@@ -2,15 +2,16 @@ package com.github.shCHO9801.climbing_record_app.climbinggym.service;
 
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.CLIMBING_GYM_ALREADY_EXISTS;
 
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym;
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym.Request;
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym.Response;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymRequest;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymResponse;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.GetGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class ClimbingGymService {
   private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
       "yyyy-MM-dd HH:mm:ss");
 
-  public CreateGym.Response createClimbingGym(CreateGym.Request request) {
+  public CreateGymResponse createClimbingGym(CreateGymRequest request) {
     if (climbingGymRepository.existsByName(request.getName())) {
       throw new CustomException(CLIMBING_GYM_ALREADY_EXISTS);
     }
@@ -41,10 +42,11 @@ public class ClimbingGymService {
     return gymsPage.map(this::convertToGym);
   }
 
-  private ClimbingGym makeGym(Request request) {
+  private ClimbingGym makeGym(CreateGymRequest request) {
     return ClimbingGym.builder()
         .name(request.getName())
-        .location(request.getLocation())
+        .location(new GeometryFactory().createPoint(
+            new Coordinate(request.getLatitude(), request.getLongitude())))
         .price(request.getPrice())
         .parkingInfo(request.getParkingInfo())
         .difficultyChart(request.getDifficultyChart())
@@ -52,11 +54,12 @@ public class ClimbingGymService {
         .build();
   }
 
-  private Response returnResponse(ClimbingGym savedGym) {
-    return CreateGym.Response.builder()
+  private CreateGymResponse returnResponse(ClimbingGym savedGym) {
+    return CreateGymResponse.builder()
         .id(savedGym.getId())
         .name(savedGym.getName())
-        .location(savedGym.getLocation())
+        .latitude(savedGym.getLocation().getX())
+        .longitude(savedGym.getLocation().getY())
         .createdAt(savedGym.getCreatedAt().format(formatter))
         .build();
   }

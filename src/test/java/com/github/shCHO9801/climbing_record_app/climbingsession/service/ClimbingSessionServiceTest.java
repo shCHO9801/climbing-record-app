@@ -14,8 +14,8 @@ import static org.mockito.Mockito.when;
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Response;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionRequest;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionResponse;
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
 import com.github.shCHO9801.climbing_record_app.climbingsession.entity.ClimbingSession;
 import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
@@ -35,7 +35,6 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -66,6 +65,7 @@ class ClimbingSessionServiceTest {
 
   private static LocalDate date;
   private static String yearMonth;
+
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
@@ -90,7 +90,6 @@ class ClimbingSessionServiceTest {
         .armLength(80.0)
         .equipmentInfo("{}")
         .build();
-
 
     climbingSession = ClimbingSession.builder()
         .id(1L)
@@ -124,7 +123,7 @@ class ClimbingSessionServiceTest {
   @DisplayName("클라이밍 세션 생성 성공")
   public void createClimbingSessionSuccess() {
     // given
-    CreateSession.Request request = CreateSession.Request.builder()
+    CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(1L)
         .userId(100L)
         .date(LocalDate.of(2025, 1, 1))
@@ -137,7 +136,7 @@ class ClimbingSessionServiceTest {
     when(climbingSessionRepository.save(any(ClimbingSession.class))).thenReturn(climbingSession);
 
     // when
-    Response response = climbingSessionService.createClimbingSession(request);
+    CreateSessionResponse response = climbingSessionService.createClimbingSession(request);
 
     // then
     assertNotNull(response);
@@ -156,7 +155,7 @@ class ClimbingSessionServiceTest {
   @DisplayName("클라이밍 세션 생성 실패 - 클라이밍장이 존재하지 않음")
   public void createClimbingSessionGymNotFound() {
     // given
-    CreateSession.Request request = CreateSession.Request.builder()
+    CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(2L) // 존재하지 않는 클라이밍장 ID
         .userId(100L)
         .date(LocalDate.of(2025, 1, 1))
@@ -178,7 +177,7 @@ class ClimbingSessionServiceTest {
   @DisplayName("클라이밍 세션 생성 실패 - 사용자가 존재하지 않음")
   public void createClimbingSessionUserNotFound() {
     // given
-    CreateSession.Request request = CreateSession.Request.builder()
+    CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(1L)
         .userId(200L) // 존재하지 않는 사용자 ID
         .date(LocalDate.of(2025, 1, 1))
@@ -206,7 +205,9 @@ class ClimbingSessionServiceTest {
         new PageImpl<>(sessions));
 
     // when
-    PagedResponse<Response> responses = climbingSessionService.getAllClimbingSessions(100L, pageable);
+    PagedResponse<CreateSessionResponse> responses = climbingSessionService.getAllClimbingSessions(
+        100L,
+        pageable);
 
     // then
     assertNotNull(responses);
@@ -219,10 +220,12 @@ class ClimbingSessionServiceTest {
   public void getAllClimbingSessionsEmpty() {
     // given
     Pageable pageable = PageRequest.of(0, 10);
-    when(climbingSessionRepository.findByUser_UserNum(999L, pageable)).thenReturn(new PageImpl<>(List.of()));
+    when(climbingSessionRepository.findByUser_UserNum(999L, pageable)).thenReturn(
+        new PageImpl<>(List.of()));
 
     // when
-    PagedResponse<CreateSession.Response> responses = climbingSessionService.getAllClimbingSessions(999L, pageable);
+    PagedResponse<CreateSessionResponse> responses = climbingSessionService.getAllClimbingSessions(
+        999L, pageable);
 
     // then
     assertNotNull(responses);

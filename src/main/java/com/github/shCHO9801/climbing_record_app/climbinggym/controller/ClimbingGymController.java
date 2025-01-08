@@ -1,10 +1,10 @@
 package com.github.shCHO9801.climbing_record_app.climbinggym.controller;
 
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymRequest;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymResponse;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.GetGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.service.ClimbingGymService;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,9 +25,9 @@ public class ClimbingGymController {
   private final ClimbingGymService climbingGymService;
 
   @PostMapping
-  public ResponseEntity<CreateGym.Response> createClimbingGym(
-      @Valid @RequestBody CreateGym.Request request) {
-    CreateGym.Response createdGym = climbingGymService.createClimbingGym(request);
+  public ResponseEntity<CreateGymResponse> createClimbingGym(
+      @RequestBody @Valid CreateGymRequest request) {
+    CreateGymResponse createdGym = climbingGymService.createClimbingGym(request);
     return ResponseEntity.ok(createdGym);
   }
 

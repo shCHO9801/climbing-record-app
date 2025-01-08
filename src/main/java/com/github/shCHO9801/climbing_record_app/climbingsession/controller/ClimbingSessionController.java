@@ -2,8 +2,8 @@ package com.github.shCHO9801.climbing_record_app.climbingsession.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Request;
-import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSession.Response;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionRequest;
+import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionResponse;
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
 import com.github.shCHO9801.climbing_record_app.climbingsession.service.ClimbingSessionService;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +25,8 @@ public class ClimbingSessionController {
   private final ClimbingSessionService climbingSessionService;
 
   @PostMapping
-  public ResponseEntity<Response> createClimbingSession(
-      @RequestBody Request request
+  public ResponseEntity<CreateSessionResponse> createClimbingSession(
+      @RequestBody CreateSessionRequest request
   ) {
     return new ResponseEntity<>(
         climbingSessionService.createClimbingSession(request),
@@ -34,7 +34,7 @@ public class ClimbingSessionController {
   }
 
   @GetMapping
-  public ResponseEntity<PagedResponse<Response>> getAllClimbingSessions(
+  public ResponseEntity<PagedResponse<CreateSessionResponse>> getAllClimbingSessions(
       @RequestParam Long userNum,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size

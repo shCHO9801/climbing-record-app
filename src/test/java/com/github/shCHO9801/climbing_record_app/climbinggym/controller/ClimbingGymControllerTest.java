@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGym;
+import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymRequest;
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
 import com.github.shCHO9801.climbing_record_app.climbinggym.service.ClimbingGymService;
@@ -69,15 +69,16 @@ class ClimbingGymControllerTest {
   @Autowired
   private ClimbingGymService service;
 
-  private CreateGym.Request request;
+  private CreateGymRequest request;
 
   @BeforeEach
   void setUp() {
     repository.deleteAll();
     GeometryFactory geometryFactory = new GeometryFactory();
-    request = CreateGym.Request.builder()
+    request = CreateGymRequest.builder()
         .name("더클라임 강남점")
-        .location(geometryFactory.createPoint(new Coordinate(127.0, 37.0)))
+        .latitude(127.0)
+        .longitude(37.0)
         .price(23000)
         .parkingInfo("30분 무료, 이후 30분당 3000원")
         .difficultyChart(Arrays.asList("하양", "노랑", "주황", "초록", "파랑", "빨강", "보라", "회색", "갈색", "검정"))
@@ -98,9 +99,8 @@ class ClimbingGymControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").exists())
         .andExpect(jsonPath("$.name").value(request.getName()))
-        .andExpect(jsonPath("$.location.type").value("point"))
-        .andExpect(jsonPath("$.location.coordinates[0]").value(127.0))
-        .andExpect(jsonPath("$.location.coordinates[1]").value(37.0))
+        .andExpect(jsonPath("$.latitude").value(127.0))
+        .andExpect(jsonPath("$.longitude").value(37.0))
         .andExpect(jsonPath("$.createdAt").exists());
 
     boolean exists = repository.existsByName(request.getName());
@@ -109,8 +109,8 @@ class ClimbingGymControllerTest {
     assertTrue(exists);
     assertNotNull(gym);
     assertEquals(gym.getName(), request.getName());
-    assertEquals(gym.getLocation().getX(), request.getLocation().getX());
-    assertEquals(gym.getLocation().getY(), request.getLocation().getY());
+    assertEquals(gym.getLocation().getX(), request.getLatitude());
+    assertEquals(gym.getLocation().getY(), request.getLongitude());
     assertNotNull(gym.getCreatedAt());
   }
 
