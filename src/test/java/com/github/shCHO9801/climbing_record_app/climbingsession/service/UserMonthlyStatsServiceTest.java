@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+@DisplayName("월간 기록 유닛 테스트")
 public class UserMonthlyStatsServiceTest {
 
   @InjectMocks

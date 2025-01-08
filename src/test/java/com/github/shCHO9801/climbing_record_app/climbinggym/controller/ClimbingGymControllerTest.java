@@ -38,6 +38,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureMockMvc
 @ActiveProfiles("testContainer")
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
+@DisplayName("클라이밍장 인테그레이션 테스트")
 class ClimbingGymControllerTest {
 
   @Container

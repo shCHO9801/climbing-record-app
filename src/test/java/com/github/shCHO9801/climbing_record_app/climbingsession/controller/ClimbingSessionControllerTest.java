@@ -40,6 +40,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @ActiveProfiles("testContainer")
 @Testcontainers
 @Transactional
+@DisplayName("운동 세션 인테그레이션 테스트")
 class ClimbingSessionControllerTest {
 
   @Autowired

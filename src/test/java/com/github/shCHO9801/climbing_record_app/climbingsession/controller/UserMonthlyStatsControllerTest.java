@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @ActiveProfiles("testH2")
 @Transactional
+@DisplayName("월간 기록 인테그레이션 테스트")
 class UserMonthlyStatsControllerTest {
 
   @Autowired

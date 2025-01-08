@@ -22,6 +22,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "users")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -58,13 +59,13 @@ public class User {
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
-  @Column
+  @Column()
   private LocalDateTime updatedAt;
 
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDateTime.now();
-    this.updatedAt = null;
+    this.updatedAt = LocalDateTime.now();
   }
 
   @PreUpdate

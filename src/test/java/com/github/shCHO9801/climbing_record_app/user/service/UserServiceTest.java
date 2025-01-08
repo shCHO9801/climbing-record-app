@@ -33,6 +33,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+@DisplayName("유저 유닛 테스트")
 class UserServiceTest {
 
   @InjectMocks
@@ -80,6 +81,7 @@ class UserServiceTest {
   }
 
   @Test
+  @DisplayName("로그인 실패")
   void loginFailedException() {
     //given
     AuthRequest request = createAuthRequest("testUser", "testPass");

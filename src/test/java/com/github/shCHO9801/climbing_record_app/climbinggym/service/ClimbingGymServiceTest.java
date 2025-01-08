@@ -32,6 +32,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+@DisplayName("클라이밍장 유닛 테스트")
 class ClimbingGymServiceTest {
 
   @InjectMocks
@@ -97,7 +98,7 @@ class ClimbingGymServiceTest {
   }
 
   @Test
-  @DisplayName("getAllGyms 성공")
+  @DisplayName("모든 클라이밍장 조회 성공")
   void getAllGymsSuccess() {
     //given
     ClimbingGym gym1 = makeGym(

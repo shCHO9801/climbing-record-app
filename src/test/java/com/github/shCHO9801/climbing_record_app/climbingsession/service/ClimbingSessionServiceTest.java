@@ -40,6 +40,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+@DisplayName("운동 세션 유닛 테스트")
 class ClimbingSessionServiceTest {
 
   @InjectMocks
