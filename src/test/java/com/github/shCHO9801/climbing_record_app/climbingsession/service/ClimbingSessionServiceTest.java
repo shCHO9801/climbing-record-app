@@ -88,7 +88,7 @@ class ClimbingSessionServiceTest {
         .nickname("Tester")
         .height(175.0)
         .armLength(80.0)
-        .equipmentInfo("{}")
+        .equipmentInfo(new HashMap<>())
         .build();
 
     climbingSession = ClimbingSession.builder()

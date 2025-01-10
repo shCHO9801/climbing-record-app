@@ -23,8 +23,9 @@ public class ProfileController {
 
   @GetMapping
   public ResponseEntity<ProfileResponse> getProfile(
-      @RequestHeader String token
+      @RequestHeader("Authorization") String authorizationHeader
   ) {
+    String token = authorizationHeader.replace("Bearer ", "");
     String userId = provider.validateAndGetUserId(token);
 
     ProfileResponse profile = profileservice.getProfile(userId);
@@ -33,9 +34,10 @@ public class ProfileController {
 
   @PutMapping
   public ResponseEntity<ProfileResponse> updateProfile(
-      @RequestHeader String token,
+      @RequestHeader("Authorization") String authorizationHeader,
       @RequestBody ProfileRequest profileRequest
   ) {
+    String token = authorizationHeader.replace("Bearer ", "");
     String userId = provider.validateAndGetUserId(token);
 
     ProfileResponse response = profileservice.updateProfile(userId, profileRequest);

@@ -26,6 +26,9 @@ public class JwtTokenProvider {
 
   // Helper 메서드: 토큰 유효성 검사 및 사용자 ID 추출
   public String validateAndGetUserId(String token) {
+    if(!StringUtils.hasText(token)) {
+      throw new CustomException(ErrorCode.INVALID_JWT_TOKEN);
+    }
     if (!jwtUtil.validateToken(token)) {
       throw new CustomException(ErrorCode.INVALID_JWT);
     }

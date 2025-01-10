@@ -2,10 +2,12 @@ package com.github.shCHO9801.climbing_record_app.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -26,6 +28,16 @@ public class ExceptionController {
         ));
   }
 
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ExceptionResponse> handleMissingRequestHeaderException(
+      MissingRequestHeaderException ex) {
+    String headerName = ex.getHeaderName();
+    String message = String.format("필수 헤더 '%s'가 누락되었습니다.", headerName);
+    ExceptionResponse errorResponse = new ExceptionResponse(HttpStatus.BAD_REQUEST.value(),
+        "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다.");
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ExceptionResponse> handleAllExceptions(Exception ex) {
     logger.error("[Unhandled Exception] {}", ex.getMessage());
@@ -40,6 +52,7 @@ public class ExceptionController {
   @Getter
   @AllArgsConstructor
   public static class ExceptionResponse {
+
     private int status;
     private String message;
   }
