@@ -28,16 +28,6 @@ public class ExceptionController {
         ));
   }
 
-  @ExceptionHandler(MissingRequestHeaderException.class)
-  public ResponseEntity<ExceptionResponse> handleMissingRequestHeaderException(
-      MissingRequestHeaderException ex) {
-    String headerName = ex.getHeaderName();
-    String message = String.format("필수 헤더 '%s'가 누락되었습니다.", headerName);
-    ExceptionResponse errorResponse = new ExceptionResponse(HttpStatus.BAD_REQUEST.value(),
-        "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다.");
-    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-  }
-
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ExceptionResponse> handleAllExceptions(Exception ex) {
     logger.error("[Unhandled Exception] {}", ex.getMessage());
@@ -47,6 +37,16 @@ public class ExceptionController {
             500,
             "서버 내부 오류가 발생했습니다."
         ));
+  }
+
+  @ExceptionHandler(MissingRequestHeaderException.class)
+  public ResponseEntity<ExceptionResponse> handleMissingRequestHeaderException(
+      MissingRequestHeaderException ex) {
+    String headerName = ex.getHeaderName();
+    String message = String.format("필수 헤더 '%s'가 누락되었습니다.", headerName);
+    ExceptionResponse errorResponse = new ExceptionResponse(HttpStatus.BAD_REQUEST.value(),
+        "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다.");
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 
   @Getter

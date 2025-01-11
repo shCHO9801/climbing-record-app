@@ -17,7 +17,6 @@ public class CreateSessionRequest {
 
   private LocalDate date;
   private int duration;
-  private Long userId;
   private Long climbingGymId;
   private Map<String, Integer> difficultyLevels;
 }

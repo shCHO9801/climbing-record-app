@@ -29,11 +29,11 @@ public class ClimbingSessionService {
   private final UserRepository userRepository;
   private final UserMonthlyStatsService monthlyStatsService;
 
-  public CreateSessionResponse createClimbingSession(CreateSessionRequest request) {
+  public CreateSessionResponse createClimbingSession(String userId, CreateSessionRequest request) {
     ClimbingGym gym = climbingGymRepository.findById(request.getClimbingGymId())
         .orElseThrow(() -> new CustomException(CLIMBING_GYM_NOT_FOUND));
 
-    User user = userRepository.findByUserNum(request.getUserId())
+    User user = userRepository.findByUsername(userId)
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
     ClimbingSession session = createSession(gym, user, request);
@@ -47,8 +47,13 @@ public class ClimbingSessionService {
     return createResponse(saved);
   }
 
-  public PagedResponse<CreateSessionResponse> getAllClimbingSessions(Long userNum,
+  public PagedResponse<CreateSessionResponse> getAllClimbingSessions(String userId,
       Pageable pageable) {
+    User user = userRepository.findByUsername(userId)
+        .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+    Long userNum = user.getUserNum();
+
     Page<ClimbingSession> page = climbingSessionRepository.findByUser_UserNum(userNum, pageable);
     List<CreateSessionResponse> content = page.stream()
         .map(this::mapToResponse)

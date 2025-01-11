@@ -42,9 +42,10 @@ public class UserService {
       String username = authentication.getName();
 
       String token = jwtUtil.generateToken(username, "USER");
+      String bearerToken = "Bearer " + token;
       logger.info("로그인 성공: 사용자명={}, JWT 토큰 발급", username);
 
-      return new AuthResponse(token);
+      return new AuthResponse(bearerToken);
     } catch (Exception e) {
       logger.error("로그인 실패: 잘못된 자격 증명 - 사용자명-{}", authRequest.getUsername());
       throw new CustomException(USER_NOT_FOUND);

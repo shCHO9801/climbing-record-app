@@ -125,18 +125,17 @@ class ClimbingSessionServiceTest {
     // given
     CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(1L)
-        .userId(100L)
         .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
         .build();
 
     when(climbingGymRepository.findById(1L)).thenReturn(Optional.of(climbingGym));
-    when(userRepository.findByUserNum(100L)).thenReturn(Optional.of(user));
+    when(userRepository.findByUsername("user100")).thenReturn(Optional.of(user));
     when(climbingSessionRepository.save(any(ClimbingSession.class))).thenReturn(climbingSession);
 
     // when
-    CreateSessionResponse response = climbingSessionService.createClimbingSession(request);
+    CreateSessionResponse response = climbingSessionService.createClimbingSession(user.getId(), request);
 
     // then
     assertNotNull(response);
@@ -157,7 +156,6 @@ class ClimbingSessionServiceTest {
     // given
     CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(2L) // 존재하지 않는 클라이밍장 ID
-        .userId(100L)
         .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
@@ -167,7 +165,7 @@ class ClimbingSessionServiceTest {
 
     // when & then
     assertThrows(CustomException.class, () -> {
-      climbingSessionService.createClimbingSession(request);
+      climbingSessionService.createClimbingSession(user.getId(), request);
     });
 
     verify(userMonthlyStatsService, never()).aggregateUserMonthlyStats(anyLong(), any(), anyInt());
@@ -179,7 +177,6 @@ class ClimbingSessionServiceTest {
     // given
     CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(1L)
-        .userId(200L) // 존재하지 않는 사용자 ID
         .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
@@ -190,7 +187,7 @@ class ClimbingSessionServiceTest {
 
     // when & then
     assertThrows(CustomException.class,
-        () -> climbingSessionService.createClimbingSession(request));
+        () -> climbingSessionService.createClimbingSession("errorId", request));
 
     verify(userMonthlyStatsService, never()).aggregateUserMonthlyStats(anyLong(), any(), anyInt());
   }
@@ -201,12 +198,13 @@ class ClimbingSessionServiceTest {
     // given
     Pageable pageable = PageRequest.of(0, 10);
     List<ClimbingSession> sessions = Arrays.asList(climbingSession1, climbingSession2);
+    when(userRepository.findByUsername("user100")).thenReturn(Optional.of(user));
     when(climbingSessionRepository.findByUser_UserNum(100L, pageable)).thenReturn(
         new PageImpl<>(sessions));
 
     // when
     PagedResponse<CreateSessionResponse> responses = climbingSessionService.getAllClimbingSessions(
-        100L,
+        user.getId(),
         pageable);
 
     // then
@@ -220,12 +218,13 @@ class ClimbingSessionServiceTest {
   public void getAllClimbingSessionsEmpty() {
     // given
     Pageable pageable = PageRequest.of(0, 10);
-    when(climbingSessionRepository.findByUser_UserNum(999L, pageable)).thenReturn(
+    when(userRepository.findByUsername("user100")).thenReturn(Optional.of(user));
+    when(climbingSessionRepository.findByUser_UserNum(100L, pageable)).thenReturn(
         new PageImpl<>(List.of()));
 
     // when
     PagedResponse<CreateSessionResponse> responses = climbingSessionService.getAllClimbingSessions(
-        999L, pageable);
+        user.getId(), pageable);
 
     // then
     assertNotNull(responses);

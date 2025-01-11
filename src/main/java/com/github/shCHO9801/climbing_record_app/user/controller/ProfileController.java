@@ -1,5 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.user.controller;
 
+import com.github.shCHO9801.climbing_record_app.exception.CustomException;
+import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
 import com.github.shCHO9801.climbing_record_app.user.dto.ProfileRequest;
 import com.github.shCHO9801.climbing_record_app.user.dto.ProfileResponse;
 import com.github.shCHO9801.climbing_record_app.user.service.ProfileService;
@@ -25,8 +27,7 @@ public class ProfileController {
   public ResponseEntity<ProfileResponse> getProfile(
       @RequestHeader("Authorization") String authorizationHeader
   ) {
-    String token = authorizationHeader.replace("Bearer ", "");
-    String userId = provider.validateAndGetUserId(token);
+    String userId = extractUserId(authorizationHeader);
 
     ProfileResponse profile = profileservice.getProfile(userId);
     return ResponseEntity.ok(profile);
@@ -37,10 +38,17 @@ public class ProfileController {
       @RequestHeader("Authorization") String authorizationHeader,
       @RequestBody ProfileRequest profileRequest
   ) {
-    String token = authorizationHeader.replace("Bearer ", "");
-    String userId = provider.validateAndGetUserId(token);
+    String userId = extractUserId(authorizationHeader);
 
     ProfileResponse response = profileservice.updateProfile(userId, profileRequest);
     return ResponseEntity.ok(response);
+  }
+
+  private String extractUserId(String authorizationHeader) {
+    if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+      throw new CustomException(ErrorCode.INVALID_JWT_TOKEN);
+    }
+    String token = authorizationHeader.replace("Bearer ", "");
+    return provider.validateAndGetUserId(token);
   }
 }

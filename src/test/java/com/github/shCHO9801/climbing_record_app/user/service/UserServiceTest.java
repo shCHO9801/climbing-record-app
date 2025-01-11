@@ -73,7 +73,7 @@ class UserServiceTest {
 
     //then
     assertNotNull(response);
-    assertEquals("jwtToken", response.getToken());
+    assertEquals("Bearer jwtToken", response.getToken());
 
     verify(authenticationManager, times(1))
         .authenticate(any(UsernamePasswordAuthenticationToken.class));

@@ -11,9 +11,12 @@ import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingG
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.CreateSessionRequest;
 import com.github.shCHO9801.climbing_record_app.climbingsession.repository.ClimbingSessionRepository;
 import com.github.shCHO9801.climbing_record_app.user.dto.RegisterRequest;
+import com.github.shCHO9801.climbing_record_app.user.entity.Role;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import com.github.shCHO9801.climbing_record_app.user.service.UserService;
+import com.github.shCHO9801.climbing_record_app.util.JwtTokenProvider;
+import com.github.shCHO9801.climbing_record_app.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -45,19 +48,31 @@ class ClimbingSessionControllerTest {
 
   @Autowired
   MockMvc mockMvc;
+
   @Autowired
   private ClimbingSessionRepository climbingSessionRepository;
+
   @Autowired
   private UserRepository userRepository;
+
   @Autowired
   private ClimbingGymRepository climbingGymRepository;
+
   @Autowired
   private ObjectMapper objectMapper;
+
   @Autowired
   private UserService userService;
 
+  @Autowired
+  private JwtTokenProvider provider;
+
+  @Autowired
+  private JwtUtil jwtUtil;
+
   private ClimbingGym climbingGym;
   private User user;
+  private String token;
 
 
   @Container
@@ -100,6 +115,7 @@ class ClimbingSessionControllerTest {
     userService.registerUser(registerRequest);
 
     user = userRepository.findByUsername("testUser").orElseThrow();
+    token = jwtUtil.generateToken(user.getId(), Role.USER.toString());
   }
 
   @Test
@@ -107,7 +123,6 @@ class ClimbingSessionControllerTest {
   void createAndGetClimbingSession() throws Exception {
     CreateSessionRequest request = CreateSessionRequest.builder()
         .climbingGymId(climbingGym.getId())
-        .userId(user.getUserNum())
         .date(LocalDate.of(2025, 1, 1))
         .duration(90)
         .difficultyLevels(new HashMap<>())
@@ -115,6 +130,7 @@ class ClimbingSessionControllerTest {
 
     mockMvc.perform(post("/api/climbing-session")
             .contentType(MediaType.APPLICATION_JSON)
+            .header("Authorization", "Bearer " + token)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").isNumber())
@@ -126,7 +142,7 @@ class ClimbingSessionControllerTest {
 
     // 클라이밍 세션 조회 요청
     mockMvc.perform(get("/api/climbing-session")
-            .param("userNum", String.valueOf(user.getUserNum()))
+            .header("Authorization", "Bearer " + token)
             .param("page", "0")
             .param("size", "10"))
         .andExpect(status().isOk())

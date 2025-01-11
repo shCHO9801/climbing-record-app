@@ -13,6 +13,7 @@ import com.github.shCHO9801.climbing_record_app.user.dto.RegisterRequest;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import com.github.shCHO9801.climbing_record_app.user.service.UserService;
+import com.github.shCHO9801.climbing_record_app.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,12 +44,18 @@ class UserMonthlyStatsControllerTest {
 
   @Autowired
   private ClimbingSessionRepository climbingSessionRepository;
+
   @Autowired
   private UserService userService;
+
   @Autowired
   private UserMonthlyStatsService userMonthlyStatsService;
 
+  @Autowired
+  private JwtUtil jwtUtil;
+
   private static User user;
+  private static String token;
 
   @BeforeEach
   void setUp() {
@@ -64,6 +71,8 @@ class UserMonthlyStatsControllerTest {
     userService.registerUser(registerRequest);
 
     user = userRepository.findByUsername("testUser").orElseThrow();
+
+    token = jwtUtil.generateToken(user.getId(), user.getRole().toString());
 
     userMonthlyStatsRepository.saveAll(Arrays.asList(
         UserMonthlyStats.builder()
@@ -82,7 +91,6 @@ class UserMonthlyStatsControllerTest {
             .totalDuration(90)
             .build()
     ));
-
   }
 
   @Test
@@ -91,7 +99,7 @@ class UserMonthlyStatsControllerTest {
     Long userNum = user.getUserNum();
 
     mockMvc.perform(get("/api/user-monthly-stats")
-            .param("userNum", userNum.toString())
+            .header("Authorization", "Bearer " + token)
             .param("year", "2025")
             .param("month", "01"))
         .andExpect(status().isOk())
