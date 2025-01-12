@@ -19,7 +19,9 @@ public enum ErrorCode {
   CLIMBING_GYM_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 존재하는 클라이밍장 입니다."),
   CLIMBING_GYM_NOT_FOUND(HttpStatus.BAD_REQUEST, "클라이밍장을 찾을 수 없습니다."),
   USER_MONTHLY_STATS_NOT_FOUND(HttpStatus.BAD_REQUEST, "해당 유저의 기록이 없습니다."),
-  INVALID_JWT_TOKEN(HttpStatus.BAD_REQUEST, "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다.");
+  INVALID_JWT_TOKEN(HttpStatus.BAD_REQUEST, "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다."),
+  POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "Post를 찾을 수 없습니다."),
+  UNAUTHORIZED_ACTION(HttpStatus.BAD_REQUEST, "작성자만 게시글을 수정, 삭제할 수 있습니다.");
 
 
   private final HttpStatus httpStatus;
