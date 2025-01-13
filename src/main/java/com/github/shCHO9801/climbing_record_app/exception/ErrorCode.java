@@ -21,7 +21,8 @@ public enum ErrorCode {
   USER_MONTHLY_STATS_NOT_FOUND(HttpStatus.BAD_REQUEST, "해당 유저의 기록이 없습니다."),
   INVALID_JWT_TOKEN(HttpStatus.BAD_REQUEST, "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다."),
   POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "Post를 찾을 수 없습니다."),
-  UNAUTHORIZED_ACTION(HttpStatus.BAD_REQUEST, "작성자만 게시글을 수정, 삭제할 수 있습니다.");
+  UNAUTHORIZED_ACTION(HttpStatus.BAD_REQUEST, "작성자만 게시글을 수정, 삭제할 수 있습니다."),
+  COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Comment를 찾을 수 없습니다.");
 
 
   private final HttpStatus httpStatus;
