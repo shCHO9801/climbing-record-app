@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymRequest;
 import com.github.shCHO9801.climbing_record_app.climbinggym.dto.CreateGymResponse;
@@ -180,8 +181,8 @@ class CommentControllerTest {
 
     System.out.println(responseContent);
 
-    responseContent = responseContent.substring(1, responseContent.length() - 1);
-    Long commentId = Long.parseLong(responseContent.split(",")[0].split(":")[1]);
+    JsonNode node = objectMapper.readTree(responseContent);
+    Long commentId = node.get("id").asLong();
 
     UpdateCommentRequest updateRequest = UpdateCommentRequest.builder()
         .content("수정된 댓글")
@@ -208,7 +209,8 @@ class CommentControllerTest {
         .andExpect(status().isCreated())
         .andReturn().getResponse().getContentAsString();
 
-    Long commentId = Long.parseLong(responseContent.split(",")[0].split(":")[1]);
+    JsonNode node = objectMapper.readTree(responseContent);
+    Long commentId = node.get("id").asLong();
 
     mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", post.getId(), commentId)
             .header("Authorization", token))
