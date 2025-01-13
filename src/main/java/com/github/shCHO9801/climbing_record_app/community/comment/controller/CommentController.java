@@ -27,14 +27,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/comments")
+@RequestMapping("/api/posts")
 @RequiredArgsConstructor
 public class CommentController {
 
   private final JwtTokenProvider provider;
   private final CommentService commentService;
 
-  @PostMapping("/{postId}")
+  @PostMapping("/{postId}/comments")
   public ResponseEntity<CommentResponse> createComment(
       @PathVariable Long postId,
       @RequestHeader("Authorization") String authorization,
@@ -42,13 +42,13 @@ public class CommentController {
   ) {
 
     String userId = extractUserId(authorization);
-    Comment comment = commentService.createComment(postId, userId, request);
+    Comment comment = commentService.createComment(postId, userId, request.getContent());
     CommentResponse response = buildResponse(comment);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-  @GetMapping("/{postId}")
+  @GetMapping("/{postId}/comments")
   public ResponseEntity<PagedResponse<CommentResponse>> getComment(
       @PathVariable Long postId,
       @RequestParam(defaultValue = "0") int page,
@@ -62,28 +62,30 @@ public class CommentController {
     return ResponseEntity.status(HttpStatus.OK).body(responses);
   }
 
-  @PutMapping("/{commentId}")
+  @PutMapping("/{postId}/comments/{commentId}")
   public ResponseEntity<CommentResponse> updateComment(
+      @PathVariable Long postId,
       @PathVariable Long commentId,
       @RequestHeader("Authorization") String authorization,
       @RequestBody UpdateCommentRequest request
   ) {
     String userId = extractUserId(authorization);
-    Comment comment = commentService.updateComment(userId, commentId, request);
+    Comment comment = commentService.updateComment(userId, postId, commentId, request);
     CommentResponse response = buildResponse(comment);
 
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
 
-  @DeleteMapping("/{commentId}")
+  @DeleteMapping("/{postId}/comments/{commentId}")
   public ResponseEntity<Void> deleteComment(
+      @PathVariable Long postId,
       @PathVariable Long commentId,
       @RequestHeader("Authorization") String authorization
       ) {
       String userId = extractUserId(authorization);
 
-      commentService.deleteComment(userId, commentId);
+      commentService.deleteComment(userId, postId, commentId);
 
       return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }

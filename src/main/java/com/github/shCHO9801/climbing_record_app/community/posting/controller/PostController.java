@@ -1,5 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.community.posting.controller;
 
+import static com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostResponse.createPostResponse;
+
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostResponse;
@@ -44,7 +46,8 @@ public class PostController {
     String userId = extractUserId(authorization);
     Post savedPost = postService.createPost(userId, request);
 
-    CreatePostResponse response = createPostResponse(savedPost, "게시글이 성공적으로 생성되었습니다.");
+    CreatePostResponse response =
+        createPostResponse(savedPost, "게시글이 성공적으로 생성되었습니다.");
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -72,7 +75,8 @@ public class PostController {
   ) {
     String userId = extractUserId(authorization);
     Post savedPost = postService.updatePost(userId, postId, request);
-    CreatePostResponse response = createPostResponse(savedPost, "게시글이 성공적으로 수정되었습니다.");
+    CreatePostResponse response =
+        createPostResponse(savedPost, "게시글이 성공적으로 수정되었습니다.");
 
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
@@ -96,27 +100,10 @@ public class PostController {
     return provider.validateAndGetUserId(token);
   }
 
-  private CreatePostResponse createPostResponse(Post post, String message) {
-    return CreatePostResponse.builder()
-        .postId(post.getId())
-        .message(message)
-        .build();
-  }
-
-  private GetPostResponse getPostResponse(Post post) {
-    return GetPostResponse.builder()
-        .id(post.getId())
-        .title(post.getTitle())
-        .content(post.getContent())
-        .userId(post.getUser().getId())
-        .gymId(post.getClimbingGym().getId())
-        .build();
-  }
-
   private PagedResponse<GetPostResponse> createPagedResponse(Page<Post> posts) {
     return PagedResponse.<GetPostResponse>builder()
         .content(posts.getContent().stream()
-            .map(this::getPostResponse)
+            .map(GetPostResponse::getPostResponse)
             .toList())
         .page(posts.getNumber())
         .size(posts.getSize())

@@ -103,7 +103,7 @@ class CommentServiceTest {
         .thenReturn(comment);
 
     //when
-    Comment create = commentService.createComment(post.getId(), user.getId(), commentRequest);
+    Comment create = commentService.createComment(post.getId(), user.getId(), commentRequest.getContent());
 
     //then
     assertNotNull(create);
@@ -127,7 +127,7 @@ class CommentServiceTest {
 
     //when
     CustomException exception = assertThrows(CustomException.class,
-        () -> commentService.createComment(post.getId(), "nonExistentUser", commentRequest));
+        () -> commentService.createComment(post.getId(), "nonExistentUser", commentRequest.getContent()));
 
     //then
     assertEquals(exception.getErrorCode(), USER_NOT_FOUND);
@@ -148,7 +148,7 @@ class CommentServiceTest {
 
     //when
     CustomException exception = assertThrows(CustomException.class,
-        () -> commentService.createComment(9999L, user.getId(), commentRequest));
+        () -> commentService.createComment(9999L, user.getId(), commentRequest.getContent()));
 
     //then
     assertEquals(exception.getErrorCode(), POST_NOT_FOUND);
@@ -162,23 +162,23 @@ class CommentServiceTest {
     UpdateCommentRequest updateRequest =
         buildUpdateRequeat("수정된 댓글");
 
-    when(userRepository.findByUsername(user.getId()))
-        .thenReturn(Optional.of(user));
     when(commentRepository.findById(comment.getId()))
         .thenReturn(Optional.of(comment));
-    when(postRepository.existsById(post.getId()))
-        .thenReturn(true);
+    when(userRepository.findByUsername(user.getId()))
+        .thenReturn(Optional.of(user));
+    when(postRepository.findById(post.getId()))
+        .thenReturn(Optional.of(post));
     when(commentRepository.save(any(Comment.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
     //when
     Comment updated
-        = commentService.updateComment(user.getId(), comment.getId(), updateRequest);
+        = commentService.updateComment(user.getId(), post.getId(),comment.getId(), updateRequest);
 
     //then
     assertNotNull(updated);
     assertEquals(comment.getId(), updated.getId());
-    assertEquals(updateRequest.getComment(), updated.getContent());
+    assertEquals(updateRequest.getContent(), updated.getContent());
   }
 
   @Test
@@ -198,15 +198,15 @@ class CommentServiceTest {
         .thenReturn(Optional.of(comment));
     when(userRepository.findByUsername(anotherUser.getId()))
         .thenReturn(Optional.of(anotherUser));
-    when(postRepository.existsById(post.getId()))
-        .thenReturn(true);
+    when(postRepository.findById(post.getId()))
+        .thenReturn(Optional.of(post));
 
     //when
     CustomException exception = assertThrows(CustomException.class,
-        () -> commentService.updateComment(anotherUser.getId(), comment.getId(), updateRequest));
+        () -> commentService.updateComment(anotherUser.getId(), post.getId(), comment.getId(), updateRequest));
 
     //then
-    assertEquals(exception.getErrorCode(), UNAUTHORIZED_ACTION);
+    assertEquals(UNAUTHORIZED_ACTION, exception.getErrorCode());
     verify(commentRepository, never()).save(any(Comment.class));
   }
 
@@ -214,15 +214,15 @@ class CommentServiceTest {
   @DisplayName("댓글 삭제 성공")
   void deleteCommentSuccess() {
     //given
-    when(userRepository.findByUsername(user.getId()))
-        .thenReturn(Optional.of(user));
     when(commentRepository.findById(comment.getId()))
         .thenReturn(Optional.of(comment));
-    when(postRepository.existsById(post.getId()))
-        .thenReturn(true);
+    when(userRepository.findByUsername(user.getId()))
+        .thenReturn(Optional.of(user));
+    when(postRepository.findById(post.getId()))
+        .thenReturn(Optional.of(post));
 
     //when&then
-    commentService.deleteComment(user.getId(), comment.getId());
+    commentService.deleteComment(user.getId(), post.getId(), comment.getId());
     verify(commentRepository, times(1))
         .delete(any(Comment.class));
   }
@@ -237,17 +237,17 @@ class CommentServiceTest {
         .password("anotherPassword")
         .build();
 
-    when(userRepository.findByUsername(anotherUser.getId()))
-        .thenReturn(Optional.of(anotherUser));
     when(commentRepository.findById(comment.getId()))
         .thenReturn(Optional.of(comment));
-    when(postRepository.existsById(post.getId()))
-        .thenReturn(true);
+    when(userRepository.findByUsername(anotherUser.getId()))
+        .thenReturn(Optional.of(anotherUser));
+    when(postRepository.findById(post.getId()))
+        .thenReturn(Optional.of(post));
 
     //when&then
     CustomException exception = assertThrows(CustomException.class,
-        () -> commentService.deleteComment(anotherUser.getId(), comment.getId()));
-    assertEquals(exception.getErrorCode(), UNAUTHORIZED_ACTION);
+        () -> commentService.deleteComment(anotherUser.getId(), post.getId(), comment.getId()));
+    assertEquals(UNAUTHORIZED_ACTION, exception.getErrorCode());
     verify(commentRepository, never())
         .delete(any(Comment.class));
   }
@@ -280,9 +280,9 @@ class CommentServiceTest {
     assertEquals("2번째", result.getContent().get(1).getContent());
   }
 
-  private UpdateCommentRequest buildUpdateRequeat(String comment) {
+  private UpdateCommentRequest buildUpdateRequeat(String content) {
     return UpdateCommentRequest.builder()
-        .comment(comment)
+        .content(content)
         .build();
   }
 

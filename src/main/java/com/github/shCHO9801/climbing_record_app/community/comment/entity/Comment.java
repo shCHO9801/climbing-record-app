@@ -58,4 +58,12 @@ public class Comment {
   protected void onUpdate() {
     this.updatedAt = LocalDateTime.now();
   }
+
+  public static Comment buildComment(User user, Post post, String content) {
+    return Comment.builder()
+        .content(content)
+        .post(post)
+        .user(user)
+        .build();
+  }
 }

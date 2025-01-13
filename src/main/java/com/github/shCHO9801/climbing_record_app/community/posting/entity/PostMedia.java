@@ -1,5 +1,6 @@
 package com.github.shCHO9801.climbing_record_app.community.posting.entity;
 
+import com.github.shCHO9801.climbing_record_app.community.posting.dto.PostMediaRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,4 +41,11 @@ public class PostMedia {
   @JoinColumn(name = "post_id", nullable = false)
   private Post post;
 
+  public static PostMedia buildPostMedia(Post post, PostMediaRequest request) {
+    return PostMedia.builder()
+        .mediaUrl(request.getMediaUrl())
+        .mediaType(request.getMediaType())
+        .post(post)
+        .build();
+  }
 }

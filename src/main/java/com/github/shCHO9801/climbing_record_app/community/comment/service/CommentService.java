@@ -1,19 +1,20 @@
 package com.github.shCHO9801.climbing_record_app.community.comment.service;
 
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.COMMENT_NOT_FOUND;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.POST_NOT_FOUND;
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.UNAUTHORIZED_ACTION;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
 
-import com.github.shCHO9801.climbing_record_app.community.comment.dto.CreateCommentRequest;
 import com.github.shCHO9801.climbing_record_app.community.comment.dto.UpdateCommentRequest;
 import com.github.shCHO9801.climbing_record_app.community.comment.entity.Comment;
 import com.github.shCHO9801.climbing_record_app.community.comment.repository.CommentRepository;
 import com.github.shCHO9801.climbing_record_app.community.posting.entity.Post;
 import com.github.shCHO9801.climbing_record_app.community.posting.repository.PostRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
-import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +29,7 @@ public class CommentService {
   private final UserRepository userRepository;
   private final PostRepository postRepository;
 
-  public Comment createComment(Long postId, String userId, CreateCommentRequest request) {
+  public Comment createComment(Long postId, String userId, String content) {
 
     User user = userRepository.findByUsername(userId)
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
@@ -36,58 +37,42 @@ public class CommentService {
     Post post = postRepository.findById(postId)
         .orElseThrow(() -> new CustomException(POST_NOT_FOUND));
 
-    return commentRepository.save(buildComment(user, post, request));
+    return commentRepository.save(Comment.buildComment(user, post, content));
   }
 
   public Page<Comment> getComments(Long postId, Pageable pageable) {
     return commentRepository.getCommentsByPostId(postId, pageable);
   }
 
-  public Comment updateComment(String userId, Long commentId, UpdateCommentRequest request) {
-    User user = findUser(userId);
-
+  public Comment updateComment(String userId, Long postId, Long commentId,
+      UpdateCommentRequest request) {
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+        .orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
 
-    if(!postRepository.existsById(comment.getPost().getId())){
-      throw new CustomException(ErrorCode.UNAUTHORIZED_ACTION);
-    }
+    validateCommentsOwnership(userId, postId, comment);
 
-    if(user.getUserNum() != comment.getUser().getUserNum()) {
-      throw new CustomException(ErrorCode.UNAUTHORIZED_ACTION);
-    }
-
-    comment.setContent(request.getComment());
+    comment.setContent(request.getContent());
     return commentRepository.save(comment);
   }
 
-  public void deleteComment(String userId, Long commentId) {
-    User user = findUser(userId);
-
+  public void deleteComment(String userId, Long postId, Long commentId) {
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+        .orElseThrow(() -> new CustomException(COMMENT_NOT_FOUND));
 
-    if(!postRepository.existsById(comment.getPost().getId())) {
-      throw new CustomException(ErrorCode.UNAUTHORIZED_ACTION);
-    }
-
-    if(user.getUserNum() != comment.getUser().getUserNum()) {
-      throw new CustomException(ErrorCode.UNAUTHORIZED_ACTION);
-    }
+    validateCommentsOwnership(userId, postId, comment);
 
     commentRepository.delete(comment);
   }
 
-  private User findUser(String userId) {
-    return userRepository.findByUsername(userId)
+  private void validateCommentsOwnership(String userId, Long postId, Comment comment) {
+    User user = userRepository.findByUsername(userId)
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
-  }
 
-  private Comment buildComment(User user, Post post, CreateCommentRequest request) {
-    return Comment.builder()
-        .content(request.getContent())
-        .post(post)
-        .user(user)
-        .build();
+    postRepository.findById(postId)
+        .orElseThrow(() -> new CustomException(POST_NOT_FOUND));
+
+    if (!Objects.equals(user.getUserNum(), comment.getUser().getUserNum())) {
+      throw new CustomException(UNAUTHORIZED_ACTION);
+    }
   }
 }

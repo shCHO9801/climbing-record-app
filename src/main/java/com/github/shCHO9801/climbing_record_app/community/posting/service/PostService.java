@@ -7,6 +7,7 @@ import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
+import com.github.shCHO9801.climbing_record_app.community.comment.repository.CommentRepository;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.PostMediaRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.UpdatePostRequest;
@@ -33,6 +34,7 @@ public class PostService {
   private final PostMediaRepository postMediaRepository;
   private final UserRepository userRepository;
   private final ClimbingGymRepository climbingGymRepository;
+  private final CommentRepository commentRepository;
 
   //TODO : 추후 AWS S3 업로드 서비스
 
@@ -44,11 +46,11 @@ public class PostService {
     ClimbingGym gym = climbingGymRepository.findById(request.getClimbingGymId())
         .orElseThrow(() -> new CustomException(CLIMBING_GYM_NOT_FOUND));
 
-    Post post = postRepository.save(buildPost(user, gym, request));
+    Post post = postRepository.save(Post.buildPost(user, gym, request));
 
     if (request.getMedia() != null && !request.getMedia().isEmpty()) {
       request.getMedia().forEach(mediaDto -> {
-        PostMedia media = buildPostMedia(post, mediaDto);
+        PostMedia media = PostMedia.buildPostMedia(post, mediaDto);
         postMediaRepository.save(media);
       });
     }
@@ -89,32 +91,15 @@ public class PostService {
       throw new CustomException(UNAUTHORIZED_ACTION);
     }
 
+    commentRepository.deleteAll(commentRepository.getCommentsByPostId(postId, Pageable.unpaged()));
+
     postRepository.delete(post);
   }
 
   private Post setUpdatePost(UpdatePostRequest request, Post post) {
     post.setTitle(request.getTitle());
     post.setContent(request.getContent());
-    post.setUpdatedAt(LocalDateTime.now());
     return post;
-  }
-
-  private PostMedia buildPostMedia(Post post, PostMediaRequest mediaDto) {
-    return PostMedia.builder()
-        .mediaUrl(mediaDto.getMediaUrl())
-        .mediaType(mediaDto.getMediaType())
-        .post(post)
-        .build();
-  }
-
-  private Post buildPost(User user, ClimbingGym gym, CreatePostRequest request) {
-    return Post.builder()
-        .title(request.getTitle())
-        .content(request.getContent())
-        .user(user)
-        .climbingGym(gym)
-        .createdAt(LocalDateTime.now())
-        .build();
   }
 
   private GetPostResponse getPostResponse(Post post) {
@@ -126,5 +111,4 @@ public class PostService {
         .gymId(post.getClimbingGym().getId())
         .build();
   }
-
 }

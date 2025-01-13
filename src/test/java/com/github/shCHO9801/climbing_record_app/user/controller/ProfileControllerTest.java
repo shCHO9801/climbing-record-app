@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("testH2")
+@DisplayName("유저 프로필 인테그레이션 테스트")
 class ProfileControllerTest {
 
   @Autowired

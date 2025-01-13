@@ -1,6 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.community.posting.entity;
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
+import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,5 +62,15 @@ public class Post {
   @PreUpdate
   protected void onUpdate() {
     this.updatedAt = LocalDateTime.now();
+  }
+
+  public static Post buildPost(User user, ClimbingGym gym, CreatePostRequest request) {
+    return Post.builder()
+        .title(request.getTitle())
+        .content(request.getContent())
+        .user(user)
+        .climbingGym(gym)
+        .createdAt(LocalDateTime.now())
+        .build();
   }
 }

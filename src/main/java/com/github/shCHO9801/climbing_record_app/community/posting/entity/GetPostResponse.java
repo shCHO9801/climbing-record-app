@@ -18,4 +18,14 @@ public class GetPostResponse {
   private String content;
   private String userId;
   private Long gymId;
+
+  public static GetPostResponse getPostResponse(Post post) {
+    return GetPostResponse.builder()
+        .id(post.getId())
+        .title(post.getTitle())
+        .content(post.getContent())
+        .userId(post.getUser().getId())
+        .gymId(post.getClimbingGym().getId())
+        .build();
+  }
 }

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.shCHO9801.climbing_record_app.climbinggym.entity.ClimbingGym;
 import com.github.shCHO9801.climbing_record_app.climbinggym.repository.ClimbingGymRepository;
+import com.github.shCHO9801.climbing_record_app.community.comment.repository.CommentRepository;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.PostMediaRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.UpdatePostRequest;
@@ -58,6 +59,9 @@ class PostServiceTest {
 
   @Mock
   private PostMediaRepository postMediaRepository;
+
+  @Mock
+  private CommentRepository commentRepository;
 
   private User user;
   private Post post;
