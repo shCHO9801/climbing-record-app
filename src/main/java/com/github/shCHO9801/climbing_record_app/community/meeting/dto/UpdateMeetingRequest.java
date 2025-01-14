@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.community.meeting.controller;
+package com.github.shCHO9801.climbing_record_app.community.meeting.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

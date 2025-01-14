@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -55,9 +56,15 @@ public class Meeting {
   @Column(nullable = false)
   private int capacity;
 
+  @Column(nullable = false)
+  private int participantCount;
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_num", nullable = false)
   private User host;
+
+  @Version
+  private Integer version;
 
   @Column(nullable = false)
   private LocalDateTime createdAt;
@@ -80,6 +87,7 @@ public class Meeting {
   protected void onCreate() {
     validateTimes();
     this.createdAt = LocalDateTime.now();
+    participantCount = 0;
   }
 
   @PreUpdate

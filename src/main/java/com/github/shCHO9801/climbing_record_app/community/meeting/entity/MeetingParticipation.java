@@ -1,5 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.community.meeting.entity;
 
+import static com.github.shCHO9801.climbing_record_app.community.meeting.entity.Status.JOIN;
+
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,4 +45,15 @@ public class MeetingParticipation {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_num", nullable = false)
   private User user;
+
+  @Version
+  private Integer version;
+
+  public static MeetingParticipation create(Meeting meeting, User user) {
+    return MeetingParticipation.builder()
+        .meeting(meeting)
+        .user(user)
+        .status(JOIN)
+        .build();
+  }
 }

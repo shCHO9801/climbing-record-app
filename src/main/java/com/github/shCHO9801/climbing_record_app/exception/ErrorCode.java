@@ -25,7 +25,10 @@ public enum ErrorCode {
   COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Comment를 찾을 수 없습니다."),
   MEETING_TIME_NULL(HttpStatus.BAD_REQUEST, "시작 시간과 종료 시간은 null일 수 없습니다."),
   MEETING_TIME_INVALID(HttpStatus.BAD_REQUEST, "시작 시간은 종료 시간보다 이전이어야 합니다."),
-  MEETING_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting을 찾을 수 없습니다.");
+  MEETING_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting을 찾을 수 없습니다."),
+  MEETING_PARTICIPATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting Participation을 찾을 수 없습니다."),
+  MEETING_CAPACITY_EXCEEDED(HttpStatus.BAD_REQUEST, "미팅 정원이 초과하였습니다."),
+  MEETING_CAPACITY_INVALID(HttpStatus.BAD_REQUEST, "현재 참여자가 미팅 최대인원 수 보다 많습니다.");
 
 
 

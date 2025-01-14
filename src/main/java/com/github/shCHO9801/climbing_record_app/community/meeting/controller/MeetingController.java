@@ -3,6 +3,8 @@ package com.github.shCHO9801.climbing_record_app.community.meeting.controller;
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingResponse;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.GetMeetingResponse;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.UpdateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.community.meeting.entity.Meeting;
 import com.github.shCHO9801.climbing_record_app.community.meeting.service.MeetingService;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
@@ -49,7 +51,7 @@ public class MeetingController {
   }
 
   @GetMapping
-  public ResponseEntity<PagedResponse<CreateMeetingResponse>> getMeetings(
+  public ResponseEntity<PagedResponse<GetMeetingResponse>> getMeetings(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
@@ -57,13 +59,13 @@ public class MeetingController {
 
     Page<Meeting> meetingPage = meetingService.getAllMeetings(pageable);
 
-    PagedResponse<CreateMeetingResponse> response = createPagedResponse(meetingPage);
+    PagedResponse<GetMeetingResponse> response = createPagedResponse(meetingPage);
 
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @PutMapping("/{meetingId}")
-  public ResponseEntity<CreateMeetingResponse> updateMeeting(
+  public ResponseEntity<GetMeetingResponse> updateMeeting(
       @RequestHeader("Authorization") String authorization,
       @PathVariable Long meetingId,
       @RequestBody UpdateMeetingRequest request
@@ -72,7 +74,7 @@ public class MeetingController {
 
     Meeting meeting = meetingService.updateMeeting(userId, meetingId, request);
 
-    return ResponseEntity.status(HttpStatus.OK).body(CreateMeetingResponse.from(meeting));
+    return ResponseEntity.status(HttpStatus.OK).body(GetMeetingResponse.from(meeting));
   }
 
   @DeleteMapping("{/{meetingId}")
@@ -87,7 +89,6 @@ public class MeetingController {
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-
   private String extractUserId(String authorizationHeader) {
     if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
       throw new CustomException(ErrorCode.INVALID_JWT_TOKEN);
@@ -96,10 +97,10 @@ public class MeetingController {
     return provider.validateAndGetUserId(token);
   }
 
-  private PagedResponse<CreateMeetingResponse> createPagedResponse(Page<Meeting> meetings) {
-    return PagedResponse.<CreateMeetingResponse>builder()
+  private PagedResponse<GetMeetingResponse> createPagedResponse(Page<Meeting> meetings) {
+    return PagedResponse.<GetMeetingResponse>builder()
         .content(meetings.getContent().stream()
-            .map(CreateMeetingResponse::from)
+            .map(GetMeetingResponse::from)
             .toList())
         .page(meetings.getNumber())
         .size(meetings.getSize())
