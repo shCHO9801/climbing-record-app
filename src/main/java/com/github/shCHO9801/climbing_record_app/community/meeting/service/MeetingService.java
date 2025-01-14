@@ -30,8 +30,6 @@ public class MeetingService {
     User user = userRepository.findByUsername(userId)
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
-    Meeting.val
-
     Meeting meeting = Meeting.buildMeeting(user, request);
     return meetingRepository.save(meeting);
   }
