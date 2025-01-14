@@ -22,7 +22,10 @@ public enum ErrorCode {
   INVALID_JWT_TOKEN(HttpStatus.BAD_REQUEST, "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다."),
   POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "Post를 찾을 수 없습니다."),
   UNAUTHORIZED_ACTION(HttpStatus.BAD_REQUEST, "작성자만 게시글을 수정, 삭제할 수 있습니다."),
-  COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Comment를 찾을 수 없습니다.");
+  COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Comment를 찾을 수 없습니다."),
+  MEETING_TIME_NULL(HttpStatus.BAD_REQUEST, "시작 시간과 종료 시간은 null일 수 없습니다."),
+  MEETING_TIME_INVALID(HttpStatus.BAD_REQUEST, "시작 시간은 종료 시간보다 이전이어야 합니다.");
+
 
 
   private final HttpStatus httpStatus;
