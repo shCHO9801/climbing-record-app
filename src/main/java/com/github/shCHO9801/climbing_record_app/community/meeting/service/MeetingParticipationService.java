@@ -51,7 +51,7 @@ public class MeetingParticipationService {
   }
 
   public Page<MeetingParticipation> getAllParticipation(Long meetingId, Pageable pageable) {
-    return meetingParticipationRepository.findAllByMeetingId(meetingId, pageable);
+    return meetingParticipationRepository.findAllByMeetingIdAndStatusNot(meetingId, Status.CANCELLED, pageable);
   }
 
   @Transactional
