@@ -77,7 +77,7 @@ public class MeetingController {
     return ResponseEntity.status(HttpStatus.OK).body(GetMeetingResponse.from(meeting));
   }
 
-  @DeleteMapping("{/{meetingId}")
+  @DeleteMapping("/{meetingId}")
   public ResponseEntity<Void> deleteMeeting(
       @RequestHeader("Authorization") String authorization,
       @PathVariable Long meetingId

@@ -63,7 +63,7 @@ public class MeetingParticipationController {
       @RequestHeader("Authorization") String authorization
   ) {
     String userId = extractUserId(authorization);
-    meetingParticipationService.cancelParticipation(userId, meetingId);
+    meetingParticipationService.cancelParticipation(userId, participationId);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
