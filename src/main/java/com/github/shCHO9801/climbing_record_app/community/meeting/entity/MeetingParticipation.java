@@ -1,4 +1,4 @@
-package com.github.shCHO9801.climbing_record_app.community.meetup.entity;
+package com.github.shCHO9801.climbing_record_app.community.meeting.entity;
 
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import jakarta.persistence.Column;

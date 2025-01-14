@@ -1,5 +1,6 @@
-package com.github.shCHO9801.climbing_record_app.community.meetup.entity;
+package com.github.shCHO9801.climbing_record_app.community.meeting.entity;
 
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
@@ -63,20 +64,35 @@ public class Meeting {
 
   private LocalDateTime updatedAt;
 
+  public static Meeting buildMeeting(User user, CreateMeetingRequest request) {
+    return Meeting.builder()
+        .title(request.getTitle())
+        .description(request.getDescription())
+        .date(request.getDate())
+        .startTime(request.getStartTime())
+        .endTime(request.getEndTime())
+        .capacity(request.getCapacity())
+        .host(user)
+        .build();
+  }
+
   @PrePersist
   protected void onCreate() {
+    validateTimes();
     this.createdAt = LocalDateTime.now();
   }
+
   @PreUpdate
   protected void onUpdate() {
+    validateTimes();
     this.updatedAt = LocalDateTime.now();
   }
 
   private void validateTimes() {
-    if(startTime == null || endTime == null) {
+    if (startTime == null || endTime == null) {
       throw new CustomException(ErrorCode.MEETING_TIME_NULL);
     }
-    if(!startTime.isBefore(endTime)) {
+    if (!startTime.isBefore(endTime)) {
       throw new CustomException(ErrorCode.MEETING_TIME_INVALID);
     }
   }
