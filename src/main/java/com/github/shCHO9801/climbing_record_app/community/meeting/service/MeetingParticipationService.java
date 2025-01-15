@@ -32,11 +32,11 @@ public class MeetingParticipationService {
 
   @Transactional
   public MeetingParticipation participation(String userId, Long meetingId) {
-    User user = userRepository.findByUsername(userId)
-        .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
-
     Meeting meeting = meetingRepository.findById(meetingId)
         .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
+
+    User user = userRepository.findByUsername(userId)
+        .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
     Optional<MeetingParticipation> existingParticipation =
         meetingParticipationRepository.findByMeetingIdAndUser_Id(meetingId, userId);
