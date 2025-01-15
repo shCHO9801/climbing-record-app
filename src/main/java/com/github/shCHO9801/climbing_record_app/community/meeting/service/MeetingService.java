@@ -27,6 +27,7 @@ public class MeetingService {
   private final MeetingRepository meetingRepository;
   private final UserRepository userRepository;
   private final MeetingParticipationRepository meetingParticipationRepository;
+  private final MeetingParticipationService meetingParticipationService;
 
   @Transactional
   public Meeting createMeeting(String userId, CreateMeetingRequest request) {
@@ -34,6 +35,7 @@ public class MeetingService {
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
     Meeting meeting = Meeting.buildMeeting(user, request);
+    meetingParticipationService.participation(userId, meeting.getId());
     return meetingRepository.save(meeting);
   }
 

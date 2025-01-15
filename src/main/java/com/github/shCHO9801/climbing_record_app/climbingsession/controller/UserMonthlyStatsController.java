@@ -52,8 +52,8 @@ public class UserMonthlyStatsController {
   @GetMapping("/paginated")
   public ResponseEntity<PagedResponse<UserMonthlyStatsResponse>> getUserMonthlyStatsPaginated(
       @RequestHeader("Authorization") String authorizationHeader,
-      @RequestParam int page,
-      @RequestParam int size
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
 
@@ -73,8 +73,8 @@ public class UserMonthlyStatsController {
   public ResponseEntity<PagedResponse<UserMonthlyStatsResponse>> getUserMonthlyStatsByYear(
       @RequestHeader("Authorization") String authorizationHeader,
       @RequestParam int year,
-      @RequestParam int page,
-      @RequestParam int size
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size
   ) {
     Pageable pageable = PageRequest.of(page, size);
     String userId = extractUserId(authorizationHeader);

@@ -1,5 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.community.meeting.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
@@ -20,5 +22,6 @@ public class CreateMeetingRequest {
   private LocalDate date;
   private LocalTime startTime;
   private LocalTime endTime;
+  @Min(1)
   private int capacity;
 }

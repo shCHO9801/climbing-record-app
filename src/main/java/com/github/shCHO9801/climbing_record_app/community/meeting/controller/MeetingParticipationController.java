@@ -36,9 +36,12 @@ public class MeetingParticipationController {
       @RequestHeader("Authorization") String authorization
   ) {
     String userId = extractUserId(authorization);
+
     MeetingParticipation participation = meetingParticipationService.participation(userId,
         meetingId);
+
     MeetingParticipationResponse response = MeetingParticipationResponse.from(participation);
+
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 

@@ -1,5 +1,6 @@
 package com.github.shCHO9801.climbing_record_app.community.meeting.service;
 
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.MEETING_ALREADY_JOINED;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.MEETING_CAPACITY_EXCEEDED;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.MEETING_NOT_FOUND;
 import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.MEETING_PARTICIPATION_NOT_FOUND;
@@ -15,6 +16,7 @@ import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,25 @@ public class MeetingParticipationService {
 
     Meeting meeting = meetingRepository.findById(meetingId)
         .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
+
+    Optional<MeetingParticipation> existingParticipation =
+        meetingParticipationRepository.findByMeetingIdAndUser_Id(meetingId, userId);
+
+    if(existingParticipation.isPresent()) {
+      MeetingParticipation participation = existingParticipation.get();
+      if(participation.getStatus() == Status.JOIN) {
+        throw new CustomException(MEETING_ALREADY_JOINED);
+      }
+      if (meeting.getParticipantCount() >= meeting.getCapacity()) {
+        throw new CustomException(MEETING_CAPACITY_EXCEEDED);
+      }
+      if(participation.getStatus() == Status.CANCELLED) {
+        participation.setStatus(Status.JOIN);
+        meeting.setParticipantCount(meeting.getParticipantCount() + 1);
+        meetingRepository.save(meeting);
+        return meetingParticipationRepository.save(participation);
+      }
+    }
 
     if (meeting.getParticipantCount() >= meeting.getCapacity()) {
       throw new CustomException(MEETING_CAPACITY_EXCEEDED);

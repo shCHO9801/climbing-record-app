@@ -28,7 +28,8 @@ public enum ErrorCode {
   MEETING_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting을 찾을 수 없습니다."),
   MEETING_PARTICIPATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting Participation을 찾을 수 없습니다."),
   MEETING_CAPACITY_EXCEEDED(HttpStatus.BAD_REQUEST, "미팅 정원이 초과하였습니다."),
-  MEETING_CAPACITY_INVALID(HttpStatus.BAD_REQUEST, "현재 참여자가 미팅 최대인원 수 보다 많습니다.");
+  MEETING_CAPACITY_INVALID(HttpStatus.BAD_REQUEST, "현재 참여자가 미팅 최대인원 수 보다 많습니다."),
+  MEETING_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "이미 소모임에 참여했습니다.");
 
 
 
