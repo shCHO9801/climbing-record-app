@@ -6,7 +6,7 @@ import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedRespons
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostResponse;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.UpdatePostRequest;
-import com.github.shCHO9801.climbing_record_app.community.posting.entity.GetPostResponse;
+import com.github.shCHO9801.climbing_record_app.community.posting.dto.GetPostResponse;
 import com.github.shCHO9801.climbing_record_app.community.posting.entity.Post;
 import com.github.shCHO9801.climbing_record_app.community.posting.service.PostService;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;

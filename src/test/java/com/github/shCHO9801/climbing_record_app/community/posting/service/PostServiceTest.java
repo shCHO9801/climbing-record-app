@@ -18,7 +18,7 @@ import com.github.shCHO9801.climbing_record_app.community.comment.repository.Com
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.PostMediaRequest;
 import com.github.shCHO9801.climbing_record_app.community.posting.dto.UpdatePostRequest;
-import com.github.shCHO9801.climbing_record_app.community.posting.entity.GetPostResponse;
+import com.github.shCHO9801.climbing_record_app.community.posting.dto.GetPostResponse;
 import com.github.shCHO9801.climbing_record_app.community.posting.entity.MediaType;
 import com.github.shCHO9801.climbing_record_app.community.posting.entity.Post;
 import com.github.shCHO9801.climbing_record_app.community.posting.entity.PostMedia;
