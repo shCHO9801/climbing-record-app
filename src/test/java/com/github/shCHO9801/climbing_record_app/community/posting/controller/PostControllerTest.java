@@ -124,7 +124,7 @@ class PostControllerTest {
     CreatePostRequest createRequest = CreatePostRequest.builder()
         .title("Original Title")
         .content("Original Content")
-        .climbingGymId(1L)
+        .climbingGymId(gym.getId())
         .media(null)
         .build();
 

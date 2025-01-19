@@ -46,8 +46,6 @@ public class MeetingParticipation {
   @JoinColumn(name = "user_num", nullable = false)
   private User user;
 
-  @Version
-  private Integer version;
 
   public static MeetingParticipation create(Meeting meeting, User user) {
     return MeetingParticipation.builder()

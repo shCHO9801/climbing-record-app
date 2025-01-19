@@ -1,5 +1,6 @@
 package com.github.shCHO9801.climbing_record_app.community.meeting.controller;
 
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,10 +12,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.UpdateMeetingRequest;
+import com.github.shCHO9801.climbing_record_app.community.meeting.repository.MeetingParticipationRepository;
 import com.github.shCHO9801.climbing_record_app.community.meeting.repository.MeetingRepository;
+import com.github.shCHO9801.climbing_record_app.community.meeting.service.MeetingParticipationService;
+import com.github.shCHO9801.climbing_record_app.exception.CustomException;
+import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
 import com.github.shCHO9801.climbing_record_app.user.dto.RegisterRequest;
 import com.github.shCHO9801.climbing_record_app.user.entity.Role;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
+import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
 import com.github.shCHO9801.climbing_record_app.user.service.UserService;
 import com.github.shCHO9801.climbing_record_app.util.JwtTokenProvider;
 import com.github.shCHO9801.climbing_record_app.util.JwtUtil;
@@ -25,20 +31,23 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@ActiveProfiles("testH2")
 @AutoConfigureMockMvc
-@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("소모임 인테그레이션 테스트")
 class MeetingControllerTest {
 
+  private static final Logger log = LoggerFactory.getLogger(MeetingControllerTest.class);
   @Autowired
   private MockMvc mockMvc;
 
@@ -51,13 +60,26 @@ class MeetingControllerTest {
   @Autowired
   private UserService userService;
 
+  @Autowired
+  private MeetingParticipationService meetingParticipationService;
+
 
   private String token;
   private String userId;
   private Long meetingId;
+  @Autowired
+  private UserRepository userRepository;
+  @Autowired
+  private MeetingParticipationRepository meetingParticipationRepository;
+  @Autowired
+  private MeetingRepository meetingRepository;
 
   @BeforeEach
   void setUp() throws Exception {
+    meetingParticipationRepository.deleteAll();
+    meetingRepository.deleteAll();
+    userRepository.deleteAll();
+
     RegisterRequest registerRequest = RegisterRequest.builder()
         .username("testUser")
         .password("password")
@@ -65,8 +87,12 @@ class MeetingControllerTest {
         .build();
 
     userService.registerUser(registerRequest);
-    userId = "testUser";
+    User user = userRepository.findByUsername("testUser")
+        .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+    userId = user.getId();
+    log.info("userID : {}", userId);
     token = "Bearer " + jwtUtil.generateToken(userId, Role.USER.toString());
+    log.info("token : {}", token);
 
     CreateMeetingRequest meetingRequest = CreateMeetingRequest.builder()
         .title("testMeeting")
@@ -80,14 +106,15 @@ class MeetingControllerTest {
     String meetingJson = objectMapper.writeValueAsString(meetingRequest);
 
     String meetingResponse = mockMvc.perform(post("/api/meetings")
-        .header("Authorization", token)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(meetingJson))
+            .header("Authorization", token)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(meetingJson))
         .andExpect(status().isCreated())
         .andReturn().getResponse().getContentAsString();
 
     JsonNode jsonNode = objectMapper.readTree(meetingResponse);
     meetingId = jsonNode.get("id").asLong();
+    log.info("---meetingId: {}", meetingId);
   }
 
   @Test

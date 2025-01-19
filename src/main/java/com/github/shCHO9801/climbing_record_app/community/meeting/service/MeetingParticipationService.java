@@ -15,12 +15,19 @@ import com.github.shCHO9801.climbing_record_app.community.meeting.repository.Mee
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.StaleObjectStateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,50 +36,59 @@ public class MeetingParticipationService {
   private final MeetingRepository meetingRepository;
   private final MeetingParticipationRepository meetingParticipationRepository;
   private final UserRepository userRepository;
+  private final MeetingParticipationHelperService helperService;
+  private static final Logger logger = LoggerFactory.getLogger(MeetingParticipationService.class);
 
-  @Transactional
+
+  @Retryable(
+      value = { PessimisticLockingFailureException.class },
+      maxAttempts = 5,
+      backoff = @Backoff(delay = 200)
+  )
   public MeetingParticipation participation(String userId, Long meetingId) {
-    Meeting meeting = meetingRepository.findById(meetingId)
-        .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
+    logger.info("참여 시작: userId={}, meetingId={}", userId, meetingId);
 
-    User user = userRepository.findByUsername(userId)
-        .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
-
+    // 체크: 이미 참여한 유저에 대한 로직은 여기서 간단하게 처리 가능 (생략 또는 별도 처리)
     Optional<MeetingParticipation> existingParticipation =
         meetingParticipationRepository.findByMeetingIdAndUser_Id(meetingId, userId);
 
-    if(existingParticipation.isPresent()) {
+    if (existingParticipation.isPresent()) {
       MeetingParticipation participation = existingParticipation.get();
-      if(participation.getStatus() == Status.JOIN) {
+      if (participation.getStatus() == Status.JOIN) {
         throw new CustomException(MEETING_ALREADY_JOINED);
-      }
-      if (meeting.getParticipantCount() >= meeting.getCapacity()) {
-        throw new CustomException(MEETING_CAPACITY_EXCEEDED);
-      }
-      if(participation.getStatus() == Status.CANCELLED) {
+      } else if (participation.getStatus() == Status.CANCELLED) {
         participation.setStatus(Status.JOIN);
-        meeting.setParticipantCount(meeting.getParticipantCount() + 1);
-        meetingRepository.save(meeting);
-        return meetingParticipationRepository.save(participation);
+        Meeting meeting = helperService.loadMeetingForUpdate(meetingId);
+        if (meeting.getParticipantCount() >= meeting.getCapacity()) {
+          throw new CustomException(MEETING_CAPACITY_EXCEEDED);
+        }
+        helperService.incrementParticipantCount(meeting);
+        logger.info("재참여 처리 완료: userId={}, meetingId={}", userId, meetingId);
+        return helperService.saveParticipation(participation);
       }
     }
 
+    Meeting meeting = helperService.loadMeetingForUpdate(meetingId);
     if (meeting.getParticipantCount() >= meeting.getCapacity()) {
       throw new CustomException(MEETING_CAPACITY_EXCEEDED);
     }
 
-    MeetingParticipation meetingParticipation = MeetingParticipation.create(meeting, user);
-    MeetingParticipation savedParticipation = meetingParticipationRepository.save(
-        meetingParticipation);
+    MeetingParticipation participation =
+        MeetingParticipation.create(meeting, userRepository.findByUsername(userId)
+        .orElseThrow(() -> new CustomException(USER_NOT_FOUND)));
 
-    meeting.setParticipantCount(meeting.getParticipantCount() + 1);
-    meetingRepository.save(meeting);
+    MeetingParticipation savedParticipation = helperService.saveParticipation(participation);
+    helperService.incrementParticipantCount(meeting);
+
+    logger.info("참여 종료: userId={}, meetingId={}, newParticipantCount={}",
+        userId, meetingId, meeting.getParticipantCount());
 
     return savedParticipation;
   }
 
   public Page<MeetingParticipation> getAllParticipation(Long meetingId, Pageable pageable) {
-    return meetingParticipationRepository.findAllByMeetingIdAndStatusNot(meetingId, Status.CANCELLED, pageable);
+    return meetingParticipationRepository.findAllByMeetingIdAndStatusNot(meetingId,
+        Status.CANCELLED, pageable);
   }
 
   @Transactional

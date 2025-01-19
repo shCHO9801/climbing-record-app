@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,8 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 @DisplayName("소모임 유닛 테스트")
+@ActiveProfiles("testH2")
 class MeetingServiceTest {
 
   @InjectMocks
@@ -42,6 +46,9 @@ class MeetingServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private MeetingParticipationService meetingParticipationService;
 
   @Mock
   private MeetingParticipationRepository participationRepository;
@@ -90,6 +97,8 @@ class MeetingServiceTest {
         .thenReturn(Optional.of(user));
     when(meetingRepository.save(any(Meeting.class)))
         .thenReturn(meeting);
+    when(meetingRepository.findByIdWithoutLock(1L))
+        .thenReturn(Optional.of(meeting));
 
     //when
     Meeting created = meetingService.createMeeting(user.getId(), createMeetingRequest);
@@ -130,16 +139,15 @@ class MeetingServiceTest {
   void updateMeetingSuccess() {
     //given
     meeting.setParticipantCount(2);
-    when(meetingRepository.findById(meeting.getId()))
+    when(meetingRepository.findByIdWithoutLock(meeting.getId()))
         .thenReturn(Optional.of(meeting));
+    when(meetingRepository.save(any(Meeting.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     UpdateMeetingRequest updateRequest = UpdateMeetingRequest.builder()
         .title("updated Title")
         .capacity(5)
         .build();
-
-    when(meetingRepository.save(any(Meeting.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
 
     //when
     Meeting updated = meetingService.updateMeeting(user.getId(), meeting.getId(), updateRequest);
@@ -148,6 +156,8 @@ class MeetingServiceTest {
     assertNotNull(updated);
     assertEquals("updated Title", updated.getTitle());
     assertEquals(5, updated.getCapacity());
+    verify(meetingRepository).findByIdWithoutLock(meeting.getId());
+    verify(meetingRepository).save(any(Meeting.class));
   }
 
   @Test
@@ -155,7 +165,7 @@ class MeetingServiceTest {
   void updateMeetingFailCapacityInvalid() {
     //given
     meeting.setParticipantCount(3);
-    when(meetingRepository.findById(meeting.getId()))
+    when(meetingRepository.findByIdWithoutLock(meeting.getId()))
         .thenReturn(Optional.of(meeting));
 
     UpdateMeetingRequest updateRequest = UpdateMeetingRequest.builder()
@@ -166,18 +176,29 @@ class MeetingServiceTest {
     CustomException exception = assertThrows(CustomException.class,
         () -> meetingService.updateMeeting(user.getId(), meeting.getId(), updateRequest));
 
+    //여기서는 capacity 검증 후 MEETING_CAPACITY_INVALID 예외가 발생해야 하나,
+    //실제 코드의 순서 상, 먼저 findByIdWithoutLock가 호출되고, 만약 meeting이 null이면 MEETING_NOT_FOUND가 발생합니다.
+    //따라서 모킹 값이 올바른지 확인!
     assertEquals(MEETING_CAPACITY_INVALID, exception.getErrorCode());
+    verify(meetingRepository).findByIdWithoutLock(meeting.getId());
+    verify(meetingRepository, times(0)).save(any(Meeting.class));
   }
 
   @Test
   @DisplayName("소모임 삭제 성공")
   void deleteMeetingSuccess() {
     //given
-    when(meetingRepository.findById(meeting.getId()))
+    when(meetingRepository.findByIdWithoutLock(meeting.getId()))
         .thenReturn(Optional.of(meeting));
+    // participationRepository의 deleteAll() 모킹은 특별한 리턴값이 없으므로 무시
 
-    //when&then
+    //when
     meetingService.deleteMeeting(user.getId(), meeting.getId());
+
+    //then
+    verify(meetingRepository, times(1)).findByIdWithoutLock(meeting.getId());
+    verify(participationRepository, times(1))
+        .deleteAll(participationRepository.getMeetingParticipationByMeetingId(meeting.getId(), Pageable.unpaged()));
     verify(meetingRepository, times(1)).deleteById(meeting.getId());
   }
 
@@ -185,13 +206,14 @@ class MeetingServiceTest {
   @DisplayName("소모임 삭제 실패 - 권한 없음")
   void deleteMeetingFailUnauthorized() {
     //given
-    when(meetingRepository.findById(meeting.getId()))
+    when(meetingRepository.findByIdWithoutLock(meeting.getId()))
         .thenReturn(Optional.of(meeting));
 
     //when&then
     CustomException exception = assertThrows(CustomException.class,
         () -> meetingService.deleteMeeting("nonExistUser", meeting.getId()));
     assertEquals(UNAUTHORIZED_ACTION, exception.getErrorCode());
-
+    verify(meetingRepository).findByIdWithoutLock(meeting.getId());
+    verify(meetingRepository, times(0)).deleteById(anyLong());
   }
 }

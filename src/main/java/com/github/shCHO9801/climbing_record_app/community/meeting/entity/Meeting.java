@@ -63,9 +63,6 @@ public class Meeting {
   @JoinColumn(name = "user_num", nullable = false)
   private User host;
 
-  @Version
-  private Integer version;
-
   @Column(nullable = false)
   private LocalDateTime createdAt;
 

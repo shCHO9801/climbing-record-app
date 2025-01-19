@@ -7,6 +7,7 @@ import com.github.shCHO9801.climbing_record_app.community.meeting.dto.GetMeeting
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.UpdateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.community.meeting.entity.Meeting;
 import com.github.shCHO9801.climbing_record_app.community.meeting.service.MeetingService;
+import com.github.shCHO9801.climbing_record_app.constants.SortFields;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
 import com.github.shCHO9801.climbing_record_app.util.JwtTokenProvider;
@@ -55,7 +56,7 @@ public class MeetingController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    Pageable pageable = PageRequest.of(page, size, Sort.by(SortFields.CREATED_AT).descending());
 
     Page<Meeting> meetingPage = meetingService.getAllMeetings(pageable);
 

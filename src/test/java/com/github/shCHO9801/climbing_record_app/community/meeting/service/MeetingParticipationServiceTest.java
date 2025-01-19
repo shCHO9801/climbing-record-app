@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-@DisplayName("소모임 참여 명단 유닛 테스트")
+@DisplayName("소모임 참여 서비스 유닛 테스트")
 class MeetingParticipationServiceTest {
 
   @InjectMocks
@@ -44,6 +45,10 @@ class MeetingParticipationServiceTest {
 
   @Mock
   private UserRepository userRepository;
+
+  // ★ helperService 모킹 추가 (이것이 없으면 helperService가 null이 되어 NPE가 발생합니다.)
+  @Mock
+  private MeetingParticipationHelperService helperService;
 
   private User user;
   private Meeting meeting;
@@ -78,36 +83,42 @@ class MeetingParticipationServiceTest {
   @Test
   @DisplayName("참여 생성 성공")
   void participationSuccess() {
-    //given
+    // given
     when(userRepository.findByUsername(user.getId()))
         .thenReturn(Optional.of(user));
-    when(meetingRepository.findById(meeting.getId()))
-        .thenReturn(Optional.of(meeting));
+    when(helperService.loadMeetingForUpdate(meeting.getId()))
+        .thenReturn(meeting);
+    when(meetingRepository.increaseParticipantCount(meeting.getId())).thenReturn(1);
     when(participationRepository.save(any(MeetingParticipation.class)))
         .thenReturn(meetingParticipation);
+    when(helperService.saveParticipation(any(MeetingParticipation.class)))
+        .thenReturn(meetingParticipation);
+    doAnswer(invocation -> {
+      meeting.setParticipantCount(meeting.getParticipantCount() + 1);
+      return null;
+    }).when(helperService).incrementParticipantCount(meeting);
 
-    //when
-    MeetingParticipation savedParticipation = participationService.participation(user.getId(),
-        meeting.getId());
+    // when
+    MeetingParticipation savedParticipation = participationService.participation(user.getId(), meeting.getId());
 
-    //then
+    // then
     assertNotNull(savedParticipation);
     assertEquals(100L, savedParticipation.getId());
-    verify(meetingRepository, times(1)).save(meeting);
     assertEquals(1, meeting.getParticipantCount());
+    verify(helperService, times(1)).loadMeetingForUpdate(meeting.getId());
   }
 
   @Test
   @DisplayName("참여 생성 실패 - capacity 초과")
   void participationFailCapacityExceeded() {
-    //given
+    // given: 이미 참여 인원이 capacity와 같음
     meeting.setParticipantCount(5);
     when(userRepository.findByUsername(user.getId()))
         .thenReturn(Optional.of(user));
-    when(meetingRepository.findById(meeting.getId()))
-        .thenReturn(Optional.of(meeting));
+    when(helperService.loadMeetingForUpdate(meeting.getId()))
+        .thenReturn(meeting);
 
-    //when&then
+    // when & then
     CustomException exception = assertThrows(CustomException.class,
         () -> participationService.participation(user.getId(), meeting.getId()));
     assertEquals(MEETING_CAPACITY_EXCEEDED, exception.getErrorCode());
@@ -116,26 +127,30 @@ class MeetingParticipationServiceTest {
   @Test
   @DisplayName("참여 생성 실패 - 유저 미존재")
   void participationFailUserNotFound() {
-    //given
+    when(userRepository.findByUsername(user.getId()))
+        .thenReturn(Optional.of(user));
+    when(helperService.loadMeetingForUpdate(meeting.getId()))
+        .thenReturn(meeting);
     when(userRepository.findByUsername("nonExistUser"))
         .thenReturn(Optional.empty());
 
-    //when&then
+    // when & then
     CustomException exception = assertThrows(CustomException.class,
-        () -> participationService.participation(user.getId(), meeting.getId()));
+        () -> participationService.participation("nonExistUser", meeting.getId()));
     assertEquals(USER_NOT_FOUND, exception.getErrorCode());
   }
 
   @Test
   @DisplayName("참여 생성 실패 - 소모임 미존재")
   void participationFailMeetingNotFound() {
-    //given
+    // given
     when(userRepository.findByUsername(user.getId()))
         .thenReturn(Optional.of(user));
-    when(meetingRepository.findById(9999L))
-        .thenReturn(Optional.empty());
+    // helperService.loadMeetingForUpdate()가 예외를 던지도록 설정
+    when(helperService.loadMeetingForUpdate(meeting.getId()))
+        .thenThrow(new CustomException(MEETING_NOT_FOUND));
 
-    //when&then
+    // when & then
     CustomException exception = assertThrows(CustomException.class,
         () -> participationService.participation(user.getId(), meeting.getId()));
     assertEquals(MEETING_NOT_FOUND, exception.getErrorCode());
@@ -144,34 +159,37 @@ class MeetingParticipationServiceTest {
   @Test
   @DisplayName("참여 취소 성공")
   void cancelParticipationSuccess() {
-      //given
+    // given : 초기 상태 - 참여 상태 JOIN, 참가자 수 3
     meetingParticipation.setStatus(Status.JOIN);
     meeting.setParticipantCount(3);
     when(participationRepository.findById(meetingParticipation.getId()))
         .thenReturn(Optional.of(meetingParticipation));
     when(userRepository.findByUsername(user.getId()))
         .thenReturn(Optional.of(user));
+    // meetingRepository.save()가 호출되면 전달받은 객체 그대로 반환하도록
     when(meetingRepository.save(any(Meeting.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-      //when
-    participationService.cancelParticipation(user.getId(), meeting.getId());
+    // when
+    participationService.cancelParticipation(user.getId(), meetingParticipation.getId());
 
-      //then
+    // then
     assertEquals(Status.CANCELLED, meetingParticipation.getStatus());
     assertEquals(2, meeting.getParticipantCount());
+    verify(participationRepository).findById(meetingParticipation.getId());
+    verify(meetingRepository).save(any(Meeting.class));
   }
 
   @Test
   @DisplayName("참여 취소 실패 - 권한 없음")
   void cancelParticipationFailUnauthorized() {
-      //given
+    // given : 참여 객체의 소유자를 다른 사용자로 설정
     User anotherUser = User.builder().userNum(2L).id("anotherUser").build();
     meetingParticipation.setUser(anotherUser);
     when(participationRepository.findById(meetingParticipation.getId()))
         .thenReturn(Optional.of(meetingParticipation));
 
-      //when&then
+    // when & then
     CustomException exception = assertThrows(CustomException.class,
         () -> participationService.cancelParticipation(user.getId(), meetingParticipation.getId()));
     assertEquals(UNAUTHORIZED_ACTION, exception.getErrorCode());

@@ -8,17 +8,19 @@ import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.community.meeting.dto.UpdateMeetingRequest;
 import com.github.shCHO9801.climbing_record_app.community.meeting.entity.Meeting;
+import com.github.shCHO9801.climbing_record_app.community.meeting.entity.MeetingParticipation;
 import com.github.shCHO9801.climbing_record_app.community.meeting.repository.MeetingParticipationRepository;
 import com.github.shCHO9801.climbing_record_app.community.meeting.repository.MeetingRepository;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.user.entity.User;
 import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,8 +37,16 @@ public class MeetingService {
         .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
     Meeting meeting = Meeting.buildMeeting(user, request);
-    meetingParticipationService.participation(userId, meeting.getId());
-    return meetingRepository.save(meeting);
+    Meeting savedMeeting = meetingRepository.save(meeting);
+
+    createInitialParticipation(user, savedMeeting);
+    return savedMeeting;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void createInitialParticipation(User user, Meeting meeting) {
+    MeetingParticipation meetingParticipation = MeetingParticipation.create(meeting, user);
+    meetingParticipationRepository.save(meetingParticipation);
   }
 
   public Page<Meeting> getAllMeetings(Pageable pageable) {
@@ -44,7 +54,7 @@ public class MeetingService {
   }
 
   public Meeting updateMeeting(String userId, Long meetingId, UpdateMeetingRequest request) {
-    Meeting meeting = meetingRepository.findById(meetingId)
+    Meeting meeting = meetingRepository.findByIdWithoutLock(meetingId)
         .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
 
     if (!Objects.equals(userId, meeting.getHost().getId())) {
@@ -68,7 +78,7 @@ public class MeetingService {
   }
 
   public void deleteMeeting(String userId, Long meetingId) {
-    Meeting meeting = meetingRepository.findById(meetingId)
+    Meeting meeting = meetingRepository.findByIdWithoutLock(meetingId)
         .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
 
     if (!Objects.equals(userId, meeting.getHost().getId())) {
