@@ -1,7 +1,7 @@
 package com.github.shCHO9801.climbing_record_app.config;
 
-import com.github.shCHO9801.climbing_record_app.filter.MDCRequestLoggingFilter;
 import com.github.shCHO9801.climbing_record_app.filter.JwtFilter;
+import com.github.shCHO9801.climbing_record_app.filter.MDCRequestLoggingFilter;
 import com.github.shCHO9801.climbing_record_app.user.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -29,15 +29,18 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable())
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth ->
-            auth.requestMatchers("/api/auth/**",
+            auth.requestMatchers(
+                    "/api/auth/**",
                     "/api/gyms/**",
                     "/api/climbing-session/**",
                     "/api/user-monthly-stats/**",
                     "/api/profile/**",
                     "/api/posts/**",
                     "/api/comments/**",
+                    "/api/meetings/**",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html").permitAll()

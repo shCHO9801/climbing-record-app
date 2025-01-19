@@ -1,5 +1,6 @@
-package com.github.shCHO9801.climbing_record_app.community.posting.entity;
+package com.github.shCHO9801.climbing_record_app.community.posting.dto;
 
+import com.github.shCHO9801.climbing_record_app.community.posting.entity.Post;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -22,7 +22,15 @@ public enum ErrorCode {
   INVALID_JWT_TOKEN(HttpStatus.BAD_REQUEST, "JWT 토큰이 존재하지 않거나 형식이 잘못되었습니다."),
   POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "Post를 찾을 수 없습니다."),
   UNAUTHORIZED_ACTION(HttpStatus.BAD_REQUEST, "작성자만 게시글을 수정, 삭제할 수 있습니다."),
-  COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Comment를 찾을 수 없습니다.");
+  COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "Comment를 찾을 수 없습니다."),
+  MEETING_TIME_NULL(HttpStatus.BAD_REQUEST, "시작 시간과 종료 시간은 null일 수 없습니다."),
+  MEETING_TIME_INVALID(HttpStatus.BAD_REQUEST, "시작 시간은 종료 시간보다 이전이어야 합니다."),
+  MEETING_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting을 찾을 수 없습니다."),
+  MEETING_PARTICIPATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "Meeting Participation을 찾을 수 없습니다."),
+  MEETING_CAPACITY_EXCEEDED(HttpStatus.BAD_REQUEST, "미팅 정원이 초과하였습니다."),
+  MEETING_CAPACITY_INVALID(HttpStatus.BAD_REQUEST, "현재 참여자가 미팅 최대인원 수 보다 많습니다."),
+  MEETING_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "이미 소모임에 참여했습니다.");
+
 
 
   private final HttpStatus httpStatus;

@@ -1,0 +1,94 @@
+package com.github.shCHO9801.climbing_record_app.community.meeting.service;
+
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.MEETING_CAPACITY_INVALID;
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.MEETING_NOT_FOUND;
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.UNAUTHORIZED_ACTION;
+import static com.github.shCHO9801.climbing_record_app.exception.ErrorCode.USER_NOT_FOUND;
+
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingRequest;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.UpdateMeetingRequest;
+import com.github.shCHO9801.climbing_record_app.community.meeting.entity.Meeting;
+import com.github.shCHO9801.climbing_record_app.community.meeting.entity.MeetingParticipation;
+import com.github.shCHO9801.climbing_record_app.community.meeting.repository.MeetingParticipationRepository;
+import com.github.shCHO9801.climbing_record_app.community.meeting.repository.MeetingRepository;
+import com.github.shCHO9801.climbing_record_app.exception.CustomException;
+import com.github.shCHO9801.climbing_record_app.user.entity.User;
+import com.github.shCHO9801.climbing_record_app.user.repository.UserRepository;
+import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class MeetingService {
+
+  private final MeetingRepository meetingRepository;
+  private final UserRepository userRepository;
+  private final MeetingParticipationRepository meetingParticipationRepository;
+  private final MeetingParticipationService meetingParticipationService;
+
+  @Transactional
+  public Meeting createMeeting(String userId, CreateMeetingRequest request) {
+    User user = userRepository.findByUsername(userId)
+        .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+    Meeting meeting = Meeting.buildMeeting(user, request);
+    Meeting savedMeeting = meetingRepository.save(meeting);
+
+    createInitialParticipation(user, savedMeeting);
+    return savedMeeting;
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void createInitialParticipation(User user, Meeting meeting) {
+    MeetingParticipation meetingParticipation = MeetingParticipation.create(meeting, user);
+    meetingParticipationRepository.save(meetingParticipation);
+  }
+
+  public Page<Meeting> getAllMeetings(Pageable pageable) {
+    return meetingRepository.findAll(pageable);
+  }
+
+  public Meeting updateMeeting(String userId, Long meetingId, UpdateMeetingRequest request) {
+    Meeting meeting = meetingRepository.findByIdWithoutLock(meetingId)
+        .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
+
+    if (!Objects.equals(userId, meeting.getHost().getId())) {
+      throw new CustomException(UNAUTHORIZED_ACTION);
+    }
+
+    if (request.getCapacity() < meeting.getParticipantCount()) {
+      throw new CustomException(MEETING_CAPACITY_INVALID);
+    }
+
+    meeting.setTitle(request.getTitle() != null ? request.getTitle() : meeting.getTitle());
+    meeting.setDescription(
+        request.getDescription() != null ? request.getDescription() : meeting.getDescription());
+    meeting.setDate(request.getDate() != null ? request.getDate() : meeting.getDate());
+    meeting.setStartTime(
+        request.getStartTime() != null ? request.getStartTime() : meeting.getStartTime());
+    meeting.setEndTime(request.getEndTime() != null ? request.getEndTime() : meeting.getEndTime());
+    meeting.setCapacity(request.getCapacity());
+
+    return meetingRepository.save(meeting);
+  }
+
+  public void deleteMeeting(String userId, Long meetingId) {
+    Meeting meeting = meetingRepository.findByIdWithoutLock(meetingId)
+        .orElseThrow(() -> new CustomException(MEETING_NOT_FOUND));
+
+    if (!Objects.equals(userId, meeting.getHost().getId())) {
+      throw new CustomException(UNAUTHORIZED_ACTION);
+    }
+
+    meetingParticipationRepository.deleteAll(
+        meetingParticipationRepository.getMeetingParticipationByMeetingId(
+            meetingId, Pageable.unpaged()));
+
+    meetingRepository.deleteById(meetingId);
+  }
+}

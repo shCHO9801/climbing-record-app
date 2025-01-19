@@ -1,14 +1,12 @@
-package com.github.shCHO9801.climbing_record_app.community.posting.controller;
-
-import static com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostResponse.createPostResponse;
+package com.github.shCHO9801.climbing_record_app.community.meeting.controller;
 
 import com.github.shCHO9801.climbing_record_app.climbingsession.dto.PagedResponse;
-import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostRequest;
-import com.github.shCHO9801.climbing_record_app.community.posting.dto.CreatePostResponse;
-import com.github.shCHO9801.climbing_record_app.community.posting.dto.UpdatePostRequest;
-import com.github.shCHO9801.climbing_record_app.community.posting.dto.GetPostResponse;
-import com.github.shCHO9801.climbing_record_app.community.posting.entity.Post;
-import com.github.shCHO9801.climbing_record_app.community.posting.service.PostService;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingRequest;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.CreateMeetingResponse;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.GetMeetingResponse;
+import com.github.shCHO9801.climbing_record_app.community.meeting.dto.UpdateMeetingRequest;
+import com.github.shCHO9801.climbing_record_app.community.meeting.entity.Meeting;
+import com.github.shCHO9801.climbing_record_app.community.meeting.service.MeetingService;
 import com.github.shCHO9801.climbing_record_app.constants.SortFields;
 import com.github.shCHO9801.climbing_record_app.exception.CustomException;
 import com.github.shCHO9801.climbing_record_app.exception.ErrorCode;
@@ -32,64 +30,63 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping("/api/meetings")
 @RequiredArgsConstructor
-public class PostController {
+public class MeetingController {
 
   private final JwtTokenProvider provider;
-  private final PostService postService;
+  private final MeetingService meetingService;
 
   @PostMapping
-  public ResponseEntity<CreatePostResponse> createPost(
+  public ResponseEntity<CreateMeetingResponse> createMeeting(
       @RequestHeader("Authorization") String authorization,
-      @RequestBody CreatePostRequest request
+      @RequestBody CreateMeetingRequest request
   ) {
     String userId = extractUserId(authorization);
-    Post savedPost = postService.createPost(userId, request);
 
-    CreatePostResponse response =
-        createPostResponse(savedPost, "게시글이 성공적으로 생성되었습니다.");
+    Meeting createdMeeting = meetingService.createMeeting(userId, request);
+
+    CreateMeetingResponse response = CreateMeetingResponse.from(createdMeeting);
 
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @GetMapping
-  public ResponseEntity<PagedResponse<GetPostResponse>> getAllPosts(
+  public ResponseEntity<PagedResponse<GetMeetingResponse>> getMeetings(
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size
   ) {
-    Pageable pageable =
-        PageRequest.of(page, size, Sort.by(SortFields.CREATED_AT).descending());
+    Pageable pageable = PageRequest.of(page, size, Sort.by(SortFields.CREATED_AT).descending());
 
-    Page<Post> posts = postService.getAllPosts(pageable);
+    Page<Meeting> meetingPage = meetingService.getAllMeetings(pageable);
 
-    PagedResponse<GetPostResponse> response = createPagedResponse(posts);
-    return ResponseEntity.status(HttpStatus.OK).body(response);
-  }
-
-  // 게시글 수정
-  @PutMapping("/{postId}")
-  public ResponseEntity<CreatePostResponse> updatePost(
-      @RequestHeader("Authorization") String authorization,
-      @PathVariable Long postId,
-      @RequestBody UpdatePostRequest request
-  ) {
-    String userId = extractUserId(authorization);
-    Post savedPost = postService.updatePost(userId, postId, request);
-    CreatePostResponse response =
-        createPostResponse(savedPost, "게시글이 성공적으로 수정되었습니다.");
+    PagedResponse<GetMeetingResponse> response = createPagedResponse(meetingPage);
 
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
-  // 게시글 삭제
-  @DeleteMapping("/{postId}")
-  public ResponseEntity<Void> deletePost(
+  @PutMapping("/{meetingId}")
+  public ResponseEntity<GetMeetingResponse> updateMeeting(
       @RequestHeader("Authorization") String authorization,
-      @PathVariable Long postId
+      @PathVariable Long meetingId,
+      @RequestBody UpdateMeetingRequest request
   ) {
     String userId = extractUserId(authorization);
-    postService.deletePost(userId, postId);
+
+    Meeting meeting = meetingService.updateMeeting(userId, meetingId, request);
+
+    return ResponseEntity.status(HttpStatus.OK).body(GetMeetingResponse.from(meeting));
+  }
+
+  @DeleteMapping("/{meetingId}")
+  public ResponseEntity<Void> deleteMeeting(
+      @RequestHeader("Authorization") String authorization,
+      @PathVariable Long meetingId
+  ) {
+    String userId = extractUserId(authorization);
+
+    meetingService.deleteMeeting(userId, meetingId);
+
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
@@ -101,15 +98,15 @@ public class PostController {
     return provider.validateAndGetUserId(token);
   }
 
-  private PagedResponse<GetPostResponse> createPagedResponse(Page<Post> posts) {
-    return PagedResponse.<GetPostResponse>builder()
-        .content(posts.getContent().stream()
-            .map(GetPostResponse::getPostResponse)
+  private PagedResponse<GetMeetingResponse> createPagedResponse(Page<Meeting> meetings) {
+    return PagedResponse.<GetMeetingResponse>builder()
+        .content(meetings.getContent().stream()
+            .map(GetMeetingResponse::from)
             .toList())
-        .page(posts.getNumber())
-        .size(posts.getSize())
-        .totalElements(posts.getTotalElements())
-        .last(posts.isLast())
+        .page(meetings.getNumber())
+        .size(meetings.getSize())
+        .totalElements(meetings.getTotalElements())
+        .last(meetings.isLast())
         .build();
   }
 }
